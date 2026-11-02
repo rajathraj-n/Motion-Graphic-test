@@ -1,0 +1,32 @@
+{
+  "name": "motion-graphic-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion starter for motion graphics (title cards, lower thirds, kinetic text, transparent overlays).",
+  "scripts": {
+    "studio": "remotion studio",
+    "dev": "remotion studio",
+    "typecheck": "tsc --noEmit",
+    "render:mp4": "node scripts/render.mjs mp4",
+    "render:mov": "node scripts/render.mjs mov",
+    "render:png": "node scripts/render.mjs png",
+    "compositions": "remotion compositions",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.540",
+    "@remotion/google-fonts": "4.0.540",
+    "@remotion/media": "4.0.540",
+    "@remotion/zod-types": "4.0.540",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.540",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}
