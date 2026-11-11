@@ -1,0 +1,13 @@
+[
+ {"id":1,"start":0.0,"end":4.6,"desc":"Woman opening station door, 06:00 clock badge"},
+ {"id":2,"start":4.6,"end":10.9,"desc":"E10 price sign 2.309 + context chips"},
+ {"id":3,"start":10.9,"end":13.1,"desc":"Sign close-up 2.289 + question mark"},
+ {"id":4,"start":13.1,"end":19.5,"desc":"Woman at POS, 'Gut feel' title + chips"},
+ {"id":5,"start":19.5,"end":20.8,"desc":"Wipe: Gut feel | Data split"},
+ {"id":6,"start":20.8,"end":57.8,"desc":"Pricing-engine explainer slides (steps 1-5)"},
+ {"id":7,"start":57.8,"end":59.7,"desc":"Tablet approval + pump sign at sunset"},
+ {"id":8,"start":59.7,"end":62.8,"desc":"Price changes delivered to the pump"},
+ {"id":9,"start":62.8,"end":64.5,"desc":"Silhouette pump, 'E10 now 2.289' chip"},
+ {"id":10,"start":64.5,"end":69.5,"desc":"Aerial network map, 'Every station...'"},
+ {"id":11,"start":69.5,"end":79.0,"desc":"End card: in time tec logo, tagline, CTA, QR"}
+]

@@ -1,0 +1,5 @@
+# large media: source and renders stay local (GitHub rejects files >100 MB)
+input/*.mp4
+input/*.mov
+output/*.mp4
+__pycache__/
