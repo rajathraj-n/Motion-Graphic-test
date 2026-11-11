@@ -1,0 +1,307 @@
+{
+ "canvas": [
+  1080,
+  1920
+ ],
+ "safe": {
+  "top": 250,
+  "bottom": 400,
+  "right": 120
+ },
+ "content_band": [
+  375,
+  1500
+ ],
+ "bg_rows": [
+  0,
+  960
+ ],
+ "transition": 0.4,
+ "logo": {
+  "time": 78.6,
+  "crop": [
+   365,
+   172,
+   650,
+   160
+  ],
+  "width": 300,
+  "y": 262,
+  "hide": [
+   [
+    69.3,
+    80.0
+   ]
+  ],
+  "fade": 0.6
+ },
+ "scenes": [
+  {
+   "start": 0.0,
+   "label": "1 woman at door + 06:00 badge",
+   "bg_dim": 0.7,
+   "regions": [
+    {
+     "crop": [
+      80,
+      0,
+      920,
+      955
+     ],
+     "scale": 1.1739
+    }
+   ]
+  },
+  {
+   "start": 4.6,
+   "label": "2 E10 sign + chips",
+   "bg_dim": 0.7,
+   "regions": [
+    {
+     "crop": [
+      400,
+      0,
+      1280,
+      955
+     ],
+     "scale": 0.84375
+    }
+   ]
+  },
+  {
+   "start": 11.2,
+   "label": "3 sign close-up + ?",
+   "bg_dim": 0.7,
+   "regions": [
+    {
+     "crop": [
+      120,
+      150,
+      1720,
+      780
+     ],
+     "scale": 0.62791
+    }
+   ]
+  },
+  {
+   "start": 13.15,
+   "label": "4 POS + Gut feel",
+   "bg_dim": 0.7,
+   "regions": [
+    {
+     "crop": [
+      420,
+      0,
+      1280,
+      955
+     ],
+     "scale": 0.84375
+    }
+   ]
+  },
+  {
+   "start": 19.4,
+   "label": "5 Gut feel | Data wipe",
+   "bg_dim": 0.95,
+   "regions": [
+    {
+     "crop": [
+      62,
+      60,
+      1830,
+      902
+     ],
+     "scale": 0.59016,
+     "y": 500,
+     "feather": [
+      30,
+      30,
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "start": 20.8,
+   "label": "6 explainer slides steps 1-5",
+   "bg_dim": 0.97,
+   "transition_in": 0,
+   "regions": [
+    {
+     "crop": [
+      62,
+      60,
+      1830,
+      902
+     ],
+     "scale": 0.59016,
+     "y": 500,
+     "feather": [
+      30,
+      30,
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "start": 57.6,
+   "label": "7 tablet + pump sign",
+   "bg_dim": 0.7,
+   "regions": [
+    {
+     "crop": [
+      100,
+      0,
+      1080,
+      955
+     ],
+     "scale": 1.0
+    }
+   ]
+  },
+  {
+   "start": 59.45,
+   "label": "8 price changes delivered",
+   "bg_dim": 0.97,
+   "regions": [
+    {
+     "crop": [
+      114,
+      80,
+      1788,
+      937
+     ],
+     "scale": 0.60403,
+     "y": 470,
+     "feather": [
+      30,
+      30,
+      0,
+      0
+     ]
+    }
+   ],
+   "masks": [
+    {
+     "type": "hinterp",
+     "rect": [
+      470,
+      965,
+      960,
+      52
+     ],
+     "t": [
+      59.0,
+      61.7
+     ]
+    },
+    {
+     "type": "plate",
+     "plate_t": 62.4,
+     "rect": [
+      470,
+      965,
+      830,
+      52
+     ],
+     "t": [
+      61.7,
+      62.35
+     ]
+    },
+    {
+     "type": "plate",
+     "plate_t": 62.4,
+     "rect": [
+      1300,
+      1004,
+      140,
+      13
+     ],
+     "t": [
+      61.7,
+      62.35
+     ]
+    }
+   ]
+  },
+  {
+   "start": 62.55,
+   "label": "9 silhouette pump + chip",
+   "bg_dim": 0.7,
+   "regions": [
+    {
+     "crop": [
+      560,
+      0,
+      1080,
+      955
+     ],
+     "scale": 1.0
+    }
+   ],
+   "transition_in": 0.24
+  },
+  {
+   "start": 64.15,
+   "label": "10 aerial network map",
+   "bg_dim": 0.7,
+   "regions": [
+    {
+     "crop": [
+      0,
+      50,
+      1920,
+      912
+     ],
+     "scale": 0.5625,
+     "y": 500
+    }
+   ]
+  },
+  {
+   "start": 69.5,
+   "label": "11 end card (stacked)",
+   "bg_dim": 0.97,
+   "regions": [
+    {
+     "crop": [
+      200,
+      160,
+      980,
+      740
+     ],
+     "scale": 1.0,
+     "x": 50,
+     "y": 290,
+     "feather": [
+      24,
+      24,
+      24,
+      24
+     ]
+    },
+    {
+     "crop": [
+      1300,
+      205,
+      475,
+      595
+     ],
+     "scale": 0.72,
+     "y": 1062,
+     "feather": [
+      20,
+      20,
+      20,
+      20
+     ]
+    }
+   ]
+  }
+ ]
+}
