@@ -1,4 +1,5 @@
 import {Composition} from 'remotion';
+import {SteamDemo} from './steam/SteamDemo';
 import {WildIndia} from './WildIndia';
 
 export const RemotionRoot: React.FC = () => {
@@ -12,6 +13,15 @@ export const RemotionRoot: React.FC = () => {
 				width={1920}
 				height={1080}
 				defaultProps={{voiceover: ''}}
+			/>
+			<Composition
+				id="SteamDemo"
+				component={SteamDemo}
+				durationInFrames={720}
+				fps={30}
+				width={1920}
+				height={1080}
+				defaultProps={{voiceover: '', logo: '', subtitles: true}}
 			/>
 		</>
 	);

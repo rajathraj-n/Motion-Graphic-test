@@ -61,3 +61,12 @@ Note that for some entities a company license is needed. [Read the terms here](h
 - Voiceover: put a recording in `public/` (e.g. `voiceover.mp3`) and set the `voiceover` prop to its file name; the music ducks automatically.
 
 Render: `npx remotion render WildIndia out/WildIndia.mp4`
+
+## Steam product demo (24 s, 1920×1080), spec piece
+
+- `src/steam/SteamDemo.tsx`: the main timeline and audio tracks · `src/steam/scenes/`: one file per scene
+- `src/steam/GameArt.tsx`: key art for the fictional games, generated in code · `scripts/make-steam-audio.mjs`: regenerates `public/steam/`
+- Props: `logo` (official logo file in `public/`, empty = text logo), `voiceover`, `subtitles`
+- Font: Inter stands in for Motiva Sans (licensed). Steam is Valve's trademark; get permission before publishing.
+
+Render: `npx remotion render SteamDemo out/SteamDemo.mp4`
