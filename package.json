@@ -1,0 +1,27 @@
+{
+  "name": "intimetec-saas-promo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "In Time Tec — 50-second premium SaaS motion graphics video (Remotion)",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:4k": "remotion render InTimeTecPromo out/intimetec-promo-4k.mp4 --scale=2 --codec=h264 --crf=16",
+    "render:prores": "remotion render InTimeTecPromo out/intimetec-promo-4k.mov --scale=2 --codec=prores --prores-profile=hq",
+    "render:preview": "remotion render InTimeTecPromo out/intimetec-promo-1080p.mp4 --codec=h264 --crf=18",
+    "still": "remotion still InTimeTecPromo out/still.png --frame=600",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.546",
+    "@remotion/fonts": "4.0.546",
+    "@remotion/paths": "4.0.546",
+    "@remotion/transitions": "4.0.546",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.546"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}
