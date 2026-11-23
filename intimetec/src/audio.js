@@ -73,7 +73,7 @@
 
     // pad
     const pad = ac.createGain(); pad.gain.value = 0.05; pad.connect(pumpBus);
-    for (let bar = -1; beatT(bar * 4) < 50; bar++) {
+    for (let bar = 0; beatT(bar * 4) < 50; bar++) {
       const t = Math.max(0, beatT(bar * 4)), d = beatT(bar * 4 + 4) - t;
       const ch = PROG[((bar % 4) + 4) % 4];
       for (const n of ch) for (const det of [-9, 9]) {
