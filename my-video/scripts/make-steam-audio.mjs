@@ -312,6 +312,37 @@ const sfx = {
 		});
 		return b;
 	},
+	// Added for the glass version (appended so earlier sounds stay identical).
+	shimmer: () => {
+		const b = buffer(1.6);
+		for (let i = 0; i < 14; i++) {
+			const m = 96 + Math.floor(rnd() * 14);
+			const t = i * 0.05 + rnd() * 0.04;
+			add(b, t, 1.0, (x) => Math.sin(TAU * midi(m) * x) * Math.exp(-x * 6) * Math.min(1, x * 300) * 0.25);
+		}
+		const hp = svf('high');
+		add(b, 0, 0.8, (x) => hp(noise(), 9000) * Math.sin(Math.PI * (x / 0.8)) * 0.08);
+		return reverb(b, 0.45, 1.2);
+	},
+	activate: () => {
+		const b = buffer(0.9);
+		[60, 67, 72, 79].forEach((m, i) =>
+			add(b, i * 0.05, 0.4, (x) => Math.sign(Math.sin(TAU * midi(m) * x)) * 0.12 * Math.exp(-x * 9)),
+		);
+		add(b, 0.2, 0.6, (x) => Math.sin(TAU * midi(91) * x) * Math.exp(-x * 5) * 0.35);
+		return reverb(b, 0.3);
+	},
+	glass: () => {
+		const len = 0.7;
+		const b = buffer(len);
+		const bp = svf('band');
+		add(b, 0, len, (x) => {
+			const p = x / len;
+			return bp(noise(), 1500 + 5000 * Math.sin(Math.PI * p), 2.5) * Math.sin(Math.PI * p) * 0.8;
+		});
+		add(b, 0.1, 0.6, (x) => Math.sin(TAU * midi(100) * x) * Math.exp(-x * 7) * 0.15);
+		return reverb(b, 0.4);
+	},
 };
 
 writeWav('music.wav', makeMusic(), 0.85);

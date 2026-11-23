@@ -70,3 +70,13 @@ Render: `npx remotion render WildIndia out/WildIndia.mp4`
 - Font: Inter stands in for Motiva Sans (licensed). Steam is Valve's trademark; get permission before publishing.
 
 Render: `npx remotion render SteamDemo out/SteamDemo.mp4`
+
+## Steam glass edition (24 s, 1920×1080), spec piece
+
+"The Future of Gaming, Beautifully Connected." The same Steam story told with floating 3D glass dashboards.
+
+- `src/glass/SteamGlass.tsx`: timeline and audio · `src/glass/scenes/`: one file per scene
+- `src/glass/stage.tsx`: shared 3D stage (camera, perspective, depth of field) · `src/glass/Glass.tsx`: glass panel, beam, reflections
+- Same props as SteamDemo: `logo`, `voiceover`, `subtitles`. Reuses the fictional games, Inter font and audio from `src/steam/`.
+
+Render: `npx remotion render SteamGlass out/SteamGlass.mp4`
