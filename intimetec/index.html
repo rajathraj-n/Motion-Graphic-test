@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>In Time Tec — Transform Complexity Into Possibility</title>
+<style>
+  @font-face { font-family: 'Poppins'; src: url(assets/fonts/Poppins-400.woff2) format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Poppins'; src: url(assets/fonts/Poppins-500.woff2) format('woff2'); font-weight: 500; }
+  @font-face { font-family: 'Poppins'; src: url(assets/fonts/Poppins-600.woff2) format('woff2'); font-weight: 600; }
+  @font-face { font-family: 'Poppins'; src: url(assets/fonts/Poppins-700.woff2) format('woff2'); font-weight: 700; }
+  :root { --bg: #111; --fg: #F5F6F8; --muted: #9aa0a8; --accent: #F06023; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px/1.4 Poppins, system-ui, sans-serif; }
+  body.render { background: #000; overflow: hidden; }
+  #wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100%; padding: 16px; gap: 12px; }
+  canvas#stage { width: min(100%, calc((100vh - 110px) * 16 / 9)); aspect-ratio: 16 / 9; background: #fff; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  body.render canvas#stage { width: auto; border-radius: 0; box-shadow: none; }
+  #bar { display: flex; gap: 10px; align-items: center; width: min(100%, calc((100vh - 110px) * 16 / 9)); flex-wrap: wrap; }
+  button, select { background: #222; color: var(--fg); border: 1px solid #3a3a3a; border-radius: 8px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+  #time { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 92px; text-align: right; }
+  #status { color: var(--muted); }
+  body.render #bar { display: none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="stage"></canvas>
+  <div id="bar">
+    <button id="play" disabled>▶ Play</button>
+    <input id="scrub" type="range" min="0" max="50" step="0.0333333" value="0">
+    <span id="time">00:00.00</span>
+    <select id="quality" title="Preview resolution">
+      <option value="0.5">540p (smooth)</option>
+      <option value="1">1080p</option>
+    </select>
+    <button id="still">Save frame</button>
+    <span id="status">Loading…</span>
+  </div>
+</div>
+<script src="src/engine.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/scenes.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>

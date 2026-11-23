@@ -7,6 +7,7 @@
  *   node tools/render.mjs --hd            # 1080p      → out/freedom_1080p.mp4
  *   node tools/render.mjs --stills 2,6.5  # PNG stills → out/stills/
  *   node tools/render.mjs --hd --from 9 --to 14   # render a time range only
+ *   node tools/render.mjs --project intimetec     # render another project folder
  *
  * Voiceover (optional): put ElevenLabs exports in audio/voiceover/ as
  * 01.mp3 … 06.mp3 (one per line, auto-placed at each scene), or a single
@@ -27,24 +28,28 @@ const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] :
 
 const hd = flag('--hd');
 const scale = hd ? 1 : 2;
-const fps = parseInt(opt('--fps', '24'), 10);
-const from = parseFloat(opt('--from', '0')), to = parseFloat(opt('--to', '30'));
+// --project <dir>: folder holding index.html (default: the repo root film)
+const projDir = path.resolve(root, opt('--project', '.'));
 const outDir = path.join(root, 'out');
 fs.mkdirSync(outDir, { recursive: true });
-const out = path.resolve(root, opt('--out', path.join('out', hd ? 'freedom_1080p.mp4' : 'freedom_4k.mp4')));
 const stills = opt('--stills', null);
-
-// Voiceover line placement (seconds) — one line per scene.
-const VO_OFFSETS = [0.35, 4.45, 9.45, 14.45, 19.45, 24.4];
 
 const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('console', (m) => { if (m.type() === 'error') console.error('[page]', m.text()); });
 page.on('pageerror', (e) => console.error('[page error]', e.message));
-const url = pathToFileURL(path.join(root, 'index.html')).href + `?render=1&scale=${scale}`;
+const url = pathToFileURL(path.join(projDir, 'index.html')).href + `?render=1&scale=${scale}`;
 await page.goto(url);
 console.log(`Preparing paint layers at ${1920 * scale}×${1080 * scale}…`);
 await page.evaluate(() => window.FC.ready);
+
+// Per-project settings published by the page (window.FC.CONFIG), with defaults.
+const cfg = { name: 'freedom', duration: 30, fps: 24, voOffsets: [0.35, 4.45, 9.45, 14.45, 19.45, 24.4],
+  ...(await page.evaluate(() => window.FC.CONFIG || {})) };
+const fps = parseInt(opt('--fps', String(cfg.fps)), 10);
+const from = parseFloat(opt('--from', '0')), to = parseFloat(opt('--to', String(cfg.duration)));
+const out = path.resolve(root, opt('--out', path.join('out', `${cfg.name}_${hd ? '1080p' : '4k'}.mp4`)));
+const VO_OFFSETS = cfg.voOffsets;
 
 async function frame(t, type) {
   const data = await page.evaluate(([tt, ty]) => window.FC.frameData(tt, ty, 0.95), [t, type]);
@@ -65,15 +70,15 @@ if (stills) {
 
 // ---- score ---------------------------------------------------------------
 console.log('Rendering score…');
-const wavPath = path.join(outDir, 'score.wav');
+const wavPath = path.join(outDir, `${cfg.name}_score.wav`);
 fs.writeFileSync(wavPath, Buffer.from(await page.evaluate(() => window.FC.renderScoreWavBase64()), 'base64'));
 
 // ---- voiceover -----------------------------------------------------------
-const voDir = path.join(root, 'audio', 'voiceover');
-const voSingle = ['mp3', 'wav', 'm4a'].map((e) => path.join(root, 'audio', `voiceover.${e}`)).find(fs.existsSync);
+const voDir = path.join(projDir, 'audio', 'voiceover');
+const voSingle = ['mp3', 'wav', 'm4a'].map((e) => path.join(projDir, 'audio', `voiceover.${e}`)).find(fs.existsSync);
 let voLines = [];
 if (fs.existsSync(voDir)) {
-  voLines = fs.readdirSync(voDir).filter((f) => /^0[1-6]\.(mp3|wav|m4a)$/i.test(f)).sort()
+  voLines = fs.readdirSync(voDir).filter((f) => /^\d\d\.(mp3|wav|m4a)$/i.test(f) && parseInt(f, 10) >= 1 && parseInt(f, 10) <= VO_OFFSETS.length).sort()
     .map((f) => ({ file: path.join(voDir, f), at: VO_OFFSETS[parseInt(f, 10) - 1] }));
 }
 

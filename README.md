@@ -1,3 +1,10 @@
+# Motion graphics
+
+Two code-generated films share one renderer (`tools/render.mjs`):
+
+- **FREEDOM — The Colors of Courage** (this page): 30 s watercolor tribute, project root.
+- **In Time Tec — Transform Complexity Into Possibility**: 50 s SaaS glass-UI film, see [`intimetec/README.md`](intimetec/README.md).
+
 # FREEDOM — The Colors of Courage
 
 A 30-second watercolor motion-graphics tribute to India's freedom fighters:
@@ -61,7 +68,7 @@ music-direction table: tanpura drone, dhol-style percussion, a bowed
 sarangi-like line, a bansuri-style flute for Gandhi, a build, and a D-major
 climax at about 27 s, plus SFX (ink drop, brush sweeps, hooves, paper,
 breeze, footsteps, marching, wind). For a richer final mix, replace
-`out/score.wav` with a composed or licensed track, using the music prompt
+`out/freedom_score.wav` with a composed or licensed track, using the music prompt
 from the brief.
 
 ## Portraits
