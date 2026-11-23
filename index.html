@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freedom — The Colors of Courage</title>
+<style>
+  @font-face { font-family: 'Cinzel'; src: url(assets/fonts/Cinzel-latin.woff2) format('woff2'); font-weight: 400 900; }
+  @font-face { font-family: 'Cormorant Garamond'; src: url(assets/fonts/CormorantGaramond-latin.woff2) format('woff2'); font-weight: 500; }
+  @font-face { font-family: 'Cormorant Garamond'; src: url(assets/fonts/CormorantGaramond-Italic-latin.woff2) format('woff2'); font-weight: 500; font-style: italic; }
+  :root { --bg: #15110d; --fg: #efe5cd; --muted: #a8977a; --accent: #e8893a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
+  body.render { background: #000; overflow: hidden; }
+  #wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100%; padding: 16px; gap: 12px; }
+  canvas#stage { width: min(100%, calc((100vh - 110px) * 16 / 9)); aspect-ratio: 16 / 9; background: #efe5cd; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  body.render canvas#stage { width: auto; box-shadow: none; }
+  #bar { display: flex; gap: 10px; align-items: center; width: min(100%, calc((100vh - 110px) * 16 / 9)); flex-wrap: wrap; }
+  button, select { background: #2a221a; color: var(--fg); border: 1px solid #4a3b2a; border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+  #time { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 92px; text-align: right; }
+  #status { color: var(--muted); }
+  body.render #bar { display: none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="stage"></canvas>
+  <div id="bar">
+    <button id="play" disabled>▶ Play</button>
+    <input id="scrub" type="range" min="0" max="30" step="0.0416667" value="0">
+    <span id="time">00:00.00</span>
+    <select id="quality" title="Preview resolution">
+      <option value="0.5">540p (smooth)</option>
+      <option value="1">1080p</option>
+    </select>
+    <button id="still" title="Save the current frame as PNG">Save frame</button>
+    <span id="status">Preparing paint…</span>
+  </div>
+</div>
+<script src="src/core.js"></script>
+<script src="src/figures.js"></script>
+<script src="src/scenes.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>

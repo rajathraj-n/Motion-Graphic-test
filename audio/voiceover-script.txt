@@ -1,0 +1,16 @@
+FREEDOM — THE COLORS OF COURAGE · Voiceover (ElevenLabs, Indian-English narrator)
+Suggested: Multilingual v2 · speed 0.95–1.0 · stability 50–60% · similarity 75–85%
+
+Export each line as its own file into audio/voiceover/ and the renderer
+places it automatically (start time in brackets):
+
+01.mp3  [00:00.35]  Freedom was a dream painted in courage.
+02.mp3  [00:04.45]  Rani Lakshmibai fought bravely in eighteen fifty-seven.
+03.mp3  [00:09.45]  Bhagat Singh ignited the spirit of revolution.
+04.mp3  [00:14.45]  Gandhi united millions through peaceful resistance.
+05.mp3  [00:19.45]  Netaji Subhas Chandra Bose inspired a fighting spirit.
+06.mp3  [00:24.40]  And in nineteen forty-seven, India became free. Their legacy lives forever.
+
+Keep lines 01–05 under ~4.3 s each and line 06 under ~5.4 s.
+Alternatively, export one file already timed to the 30-second cut as
+audio/voiceover.mp3 — it is placed at 00:00.
