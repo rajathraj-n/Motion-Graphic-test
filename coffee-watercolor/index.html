@@ -1,0 +1,388 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Where a Cup Begins</title>
+<style>
+@font-face{font-family:Caveat;src:url(fonts/Caveat.ttf) format("truetype");font-weight:400 700}
+@font-face{font-family:Corm;src:url(fonts/CormorantItalic.ttf) format("truetype");font-weight:300 700;font-style:italic}
+@font-face{font-family:Corm;src:url(fonts/Cormorant.ttf) format("truetype");font-weight:300 700}
+@font-face{font-family:Plex;src:url(fonts/IBMPlexMono-Regular.ttf) format("truetype")}
+html,body{margin:0;background:#3a3029;overflow:hidden}canvas{display:block}
+</style></head><body><canvas id="c"></canvas>
+<script type="module">
+import { clamp, lerp, seg, ss, eio, eo, mulberry, vnoise } from '/core/lib.js';
+
+const W = innerWidth, H = innerHeight;
+const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d');
+const DUR = 44;
+const SHEET = { w: 1920, h: 4980 };
+const INK = '#3a2a1e', INK2 = '#7a5a40', PAPER = '#f3ead8';
+
+// ---------- seeded random ----------
+let R = mulberry(1);
+const rnd = (a = 0, b = 1) => a + (b - a) * R();
+function withSeed(s, f) { const old = R; R = mulberry(s); const v = f(); R = old; return v; }
+
+// ---------- colour ----------
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const rgba = (h, a) => { const [r, g, b] = hex(h); return `rgba(${r},${g},${b},${a})`; };
+const mixc = (a, b, u) => { const A = hex(a), B = hex(b); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], u)).toString(16).padStart(2, '0')).join(''); };
+
+// ---------- stroke engine ----------
+const PROF = {
+  brush: u => Math.pow(Math.sin(Math.PI * clamp(u * .92 + .04)), .55),
+  leaf: u => Math.pow(Math.sin(Math.PI * u), .8),
+  even: u => Math.min(1, u * 10, (1 - u) * 10, 1),
+  tip: u => Math.min(1, u * 8) * (1 - u * .85),
+  trunk: u => lerp(1, .5, u) * Math.min(1, u * 14 + .3),
+};
+function resample(pts, n) {
+  const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const tot = L[L.length - 1], out = []; let j = 0;
+  for (let k = 0; k < n; k++) { const d = tot * k / (n - 1); while (j < L.length - 2 && L[j + 1] < d) j++; const u = (d - L[j]) / Math.max(1e-6, L[j + 1] - L[j]); out.push([lerp(pts[j][0], pts[j + 1][0], u), lerp(pts[j][1], pts[j + 1][1], u)]); }
+  return { out, tot };
+}
+function catmull(ctrl, per = 8) { // smooth through control points
+  const p = [ctrl[0], ...ctrl, ctrl[ctrl.length - 1]], o = [];
+  for (let i = 1; i < p.length - 2; i++) for (let k = 0; k < per; k++) {
+    const t = k / per, t2 = t * t, t3 = t2 * t, a = p[i - 1], b = p[i], c = p[i + 1], d = p[i + 2];
+    o.push([0, 1].map(j => .5 * (2 * b[j] + (-a[j] + c[j]) * t + (2 * a[j] - 5 * b[j] + 4 * c[j] - d[j]) * t2 + (-a[j] + 3 * b[j] - 3 * c[j] + d[j]) * t3)));
+  }
+  o.push(ctrl[ctrl.length - 1]); return o;
+}
+function mk(ctrl, o = {}) {
+  const { w = 10, profile = 'brush', color = INK, alpha = .58, bristles = 5, rough = .22 } = o;
+  const smooth = ctrl.length > 2 ? catmull(ctrl) : ctrl;
+  const { out: P, tot } = resample(smooth, Math.max(8, Math.min(90, Math.round(tot0(smooth) / 6))));
+  const N = P.length, nrm = [], wd = [], ph = rnd(0, 100);
+  for (let i = 0; i < N; i++) {
+    const a = P[Math.max(0, i - 1)], b = P[Math.min(N - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+    nrm.push([-dy / l, dx / l]);
+    const u = i / (N - 1);
+    wd.push(w * PROF[profile](u) * (1 + rough * (vnoise(ph + u * tot / 40) - .5) * 2));
+  }
+  const jit = [0, 1].map(() => P.map(() => [rnd(-1.5, 1.5), rnd(-1.5, 1.5)]));
+  const br = [];
+  for (let k = 0; k < bristles; k++) {
+    const dash = []; for (let q = 0; q < 6; q++) dash.push(rnd(6, 40), rnd(2, 14));
+    br.push({ off: rnd(-.85, .85), bw: rnd(.8, 2.4), a: rnd(.3, .85), dash, end: rnd(.55, 1) });
+  }
+  return { P, N, nrm, wd, jit, br, color, alpha, tot };
+}
+function tot0(p) { let s = 0; for (let i = 1; i < p.length; i++) s += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]); return s; }
+function drawS(s, f = 1, color) {
+  if (f <= 0) return;
+  const c = color || s.color, n = Math.max(2, Math.min(s.N, Math.ceil(f * s.N)));
+  for (let pass = 0; pass < 2; pass++) {   // two jittered passes → pooled edge
+    const J = s.jit[pass];
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) { const p = s.P[i], q = s.nrm[i], w = s.wd[i] / 2; ctx.lineTo(p[0] + q[0] * w + J[i][0], p[1] + q[1] * w + J[i][1]); }
+    for (let i = n - 1; i >= 0; i--) { const p = s.P[i], q = s.nrm[i], w = s.wd[i] / 2; ctx.lineTo(p[0] - q[0] * w - J[i][1], p[1] - q[1] * w - J[i][0]); }
+    ctx.closePath(); ctx.fillStyle = rgba(c, s.alpha * .55); ctx.fill();
+  }
+  // bristle tracks: flying white
+  ctx.lineCap = 'round';
+  for (const b of s.br) {
+    const m = Math.min(n, Math.floor(b.end * s.N)); if (m < 2) continue;
+    ctx.beginPath();
+    for (let i = 0; i < m; i++) { const p = s.P[i], q = s.nrm[i], w = s.wd[i] / 2 * b.off; ctx.lineTo(p[0] + q[0] * w, p[1] + q[1] * w); }
+    ctx.setLineDash(b.dash); ctx.lineWidth = b.bw; ctx.strokeStyle = rgba(mixc(c, '#000000', .2), b.a * s.alpha); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+}
+// a list of strokes painted in order across progress p (structure first)
+function drawList(list, p, colorFn) {
+  const k = list.length;
+  for (let i = 0; i < k; i++) { const f = clamp(p * k - i); if (f > 0) drawS(list[i], eo(f), colorFn ? colorFn(i) : undefined); }
+}
+// wash: a filled shape in three jittered passes, revealed by a wavy brush-edge wipe
+function mkWash(pts, color, alpha = .5) {
+  return { pts, color, alpha, jit: [0, 1, 2].map(() => pts.map(() => [rnd(-3, 3), rnd(-3, 3)])), ph: rnd(0, 50) };
+}
+function drawWash(w, p = 1, color, dir = 'x') {
+  if (p <= 0) return;
+  const xs = w.pts.map(q => q[0]), ys = w.pts.map(q => q[1]);
+  const x0 = Math.min(...xs) - 10, x1 = Math.max(...xs) + 10, y0 = Math.min(...ys) - 10, y1 = Math.max(...ys) + 10;
+  ctx.save();
+  if (p < 1) {
+    ctx.beginPath();
+    if (dir === 'x') { const e = lerp(x0, x1 + 30, p); ctx.moveTo(x0, y0); for (let y = y0; y <= y1; y += 8) ctx.lineTo(e + 14 * (vnoise(w.ph + y / 30) - .5) * 2, y); ctx.lineTo(x0, y1); }
+    else { const e = lerp(y1, y0 - 30, p); ctx.moveTo(x0, y1); for (let x = x0; x <= x1; x += 8) ctx.lineTo(x, e + 14 * (vnoise(w.ph + x / 30) - .5) * 2); ctx.lineTo(x1, y1); }
+    ctx.closePath(); ctx.clip();
+  }
+  const c = color || w.color;
+  for (const J of w.jit) { ctx.beginPath(); w.pts.forEach((q, i) => ctx.lineTo(q[0] + J[i][0], q[1] + J[i][1])); ctx.closePath(); ctx.fillStyle = rgba(c, w.alpha / 2.2); ctx.fill(); }
+  ctx.restore();
+}
+const ellipsePts = (cx, cy, rx, ry, n = 40, rot = 0, wob = .04) => Array.from({ length: n }, (_, i) => { const a = i / n * Math.PI * 2, r = 1 + wob * (rnd() - .5) * 2; const x = Math.cos(a) * rx * r, y = Math.sin(a) * ry * r; return [cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)]; });
+
+// ---------- annotations ----------
+const TX = []; let CAM = null;
+function note(str, x, y, t0, t, o = {}) {
+  const { size = 44, font = 'Caveat', weight = 500, color = INK, dur = Math.max(.6, str.length * .045), id = str, italic = false, check = true, align = 'left' } = o;
+  if (t < t0) return;
+  const p = seg(t, t0, t0 + dur);
+  ctx.save();
+  ctx.font = `${italic ? 'italic ' : ''}${weight} ${size}px ${font}`; ctx.letterSpacing = o.ls || '0px';
+  const m = ctx.measureText(str); const xx = align === 'center' ? x - m.width / 2 : x;
+  ctx.beginPath(); ctx.rect(xx - 10, y - size * 1.1, (m.width + 30) * p, size * 1.6); ctx.clip();
+  if (o.halo === false) { ctx.fillStyle = color; ctx.fillText(str, xx, y); }
+  else { ctx.lineJoin = 'round'; ctx.strokeStyle = rgba(PAPER, .85); ctx.lineWidth = size * .22; ctx.strokeText(str, xx, y);
+  ctx.fillStyle = rgba(color, .55); ctx.fillText(str, xx, y); ctx.fillText(str, xx + .6, y + .4); }
+  ctx.restore();
+  if (p >= 1 && check) {
+    const a = w2s(xx, y - size * .9), b = w2s(xx + m.width, y + size * .3);
+    TX.push({ id, text: str, x0: a[0], y0: a[1], x1: b[0], y1: b[1] });
+  }
+}
+function leader(s, t0, t) { drawS(s, eio(seg(t, t0, t0 + .6))); }
+
+// ---------- camera ----------
+const K = [
+  [0, 960, 540, 1], [5.0, 960, 540, 1], [6.6, 960, 1500, 1], [14.0, 960, 1500, 1], [15.6, 900, 2460, 1.28], [21.0, 900, 2460, 1.28],
+  [22.6, 960, 3360, 1], [30.0, 960, 3360, 1], [31.6, 960, 4300, 1], [37.0, 960, 4300, 1], [39.4, 960, SHEET.h / 2, 0.205], [DUR, 960, SHEET.h / 2, 0.2],
+];
+function cam(t) {
+  for (let i = 0; i < K.length - 1; i++) { const a = K[i], b = K[i + 1]; if (t <= b[0]) { const u = eio(seg(t, a[0], b[0])); return { x: lerp(a[1], b[1], u), y: lerp(a[2], b[2], u), s: Math.exp(lerp(Math.log(a[3]), Math.log(b[3]), u)) }; } }
+  const z = K[K.length - 1]; return { x: z[1], y: z[2], s: z[3] };
+}
+function w2s(x, y) { const k = CAM, s = k.s * W / 1920; return [W / 2 + (x - k.x) * s, H / 2 + (y - k.y) * s]; }
+
+// ---------- scene (built once under fixed seeds) ----------
+const S = {};
+function build() {
+  R = mulberry(7);
+  // 2. branch with leaves, flowers, cherries (y ≈ 1000–2000)
+  const br = [[180, 1180], [520, 1320], [900, 1420], [1260, 1450], [1720, 1400]];
+  S.branch = [mk(br, { w: 26, profile: 'trunk', color: '#6b4a2e', alpha: .7, bristles: 7 })];
+  S.twigs = []; S.leaves = []; S.flowers = []; S.cherries = [];
+  const bpath = resample(catmull(br), 200).out;
+  const nodes = [0.16, 0.33, 0.5, 0.67, 0.84];
+  nodes.forEach((u, ni) => {
+    const p = bpath[Math.floor(u * 199)];
+    for (const side of [-1, 1]) {   // opposite leaf pair
+      const ang = -Math.PI / 2 * side + rnd(-.35, .35) + (side > 0 ? .5 : -.5) * .4 + .35;
+      const L = rnd(240, 320), ex = p[0] + Math.cos(ang) * L * .9 + 60, ey = p[1] + Math.sin(ang) * L;
+      const mid = [(p[0] + ex) / 2 + side * 30, (p[1] + ey) / 2];
+      const c1 = rnd() < .5 ? '#3f6b3a' : '#4f7c43';
+      S.leaves.push({ ni, strokes: [
+        mk([p, [mid[0] - 30, mid[1] - side * 18], [ex, ey]], { w: 96, profile: 'leaf', color: c1, alpha: .55, bristles: 6 }),
+        mk([p, [mid[0] + 10, mid[1] + side * 10], [ex, ey]], { w: 60, profile: 'leaf', color: '#5f8a4a', alpha: .45, bristles: 4 }),
+        mk([p, mid, [ex, ey]], { w: 3, profile: 'tip', color: '#2c4a28', alpha: .6, bristles: 1 }),
+      ] });
+    }
+    // cherry cluster hugging the branch node
+    const n = 4 + (ni % 2);
+    for (let c = 0; c < n; c++) {
+      const a = c / n * Math.PI * 2 + rnd(-.3, .3), r = rnd(22, 40);
+      const cx = p[0] + Math.cos(a) * r, cy = p[1] + 10 + Math.sin(a) * r * .8;
+      S.cherries.push({ x: cx, y: cy, ni, k: c, w: mkWash(ellipsePts(cx, cy, 25, 23, 28), '#7f9a45', .85), shade: mk([[cx + 18, cy - 12], [cx + 22, cy + 6], [cx + 8, cy + 20]], { w: 9, profile: 'leaf', color: '#4a2a1a', alpha: .35, bristles: 2 }) });
+    }
+    // white flowers: paper petals with pale edge strokes (never paint white)
+    if (ni % 2 === 0) for (let f = 0; f < 2; f++) {
+      const fx = p[0] + rnd(-40, 60), fy = p[1] - rnd(50, 80), st = [];
+      for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2 + rnd(-.2, .2); st.push(mk([[fx, fy], [fx + Math.cos(a) * 22, fy + Math.sin(a) * 22], [fx + Math.cos(a) * 42, fy + Math.sin(a) * 42]], { w: 20, profile: 'leaf', color: '#c9cdb4', alpha: .45, bristles: 2 })); }
+      st.push(mk([[fx - 3, fy], [fx + 3, fy + 1]], { w: 9, profile: 'even', color: '#d8b24a', alpha: .7, bristles: 0 }));
+      S.flowers.push({ ni, st });
+    }
+  });
+  S.l1 = mk([[1230, 1700], [1180, 1640], [1120, 1520]], { w: 2.2, profile: 'even', color: INK, alpha: .7, bristles: 1 });
+
+  // 3. cherry cross-section (centre 900, 2460)
+  const cx = 900, cy = 2460;
+  S.skin = mkWash(ellipsePts(cx, cy, 240, 225, 60, 0, .02), '#b8322a', .9);
+  S.skinEdge = mk(ellipsePts(cx, cy, 236, 221, 30, 0, .01).concat([[cx + 236, cy + 2]]), { w: 14, profile: 'even', color: '#7d1e18', alpha: .45, bristles: 4 });
+  S.pulp = mkWash(ellipsePts(cx, cy, 205, 192, 60, 0, .02), '#ecd59c', .95);
+  S.seeds = [-1, 1].map(sd => ({
+    w: mkWash(ellipsePts(cx + sd * 78, cy, 78, 132, 40, sd * .08, .02), '#c9c48e', .95),
+    edge: mk(ellipsePts(cx + sd * 78, cy, 76, 130, 24, sd * .08, .01).concat([[cx + sd * 78 + 76, cy]]), { w: 6, profile: 'even', color: '#8b8656', alpha: .5, bristles: 2 }),
+    crease: mk([[cx + sd * 30, cy - 100], [cx + sd * 50, cy - 30], [cx + sd * 34, cy + 30], [cx + sd * 50, cy + 100]], { w: 7, profile: 'brush', color: '#6d6a42', alpha: .6, bristles: 2 }),
+  }));
+  S.cl = [ // leaders from notes to parts
+    mk([[1250, 2290], [1180, 2300], [1080, 2320]], { w: 2.2, profile: 'even', color: INK, alpha: .7, bristles: 1 }),
+    mk([[1250, 2430], [1160, 2440], [1060, 2450]], { w: 2.2, profile: 'even', color: INK, alpha: .7, bristles: 1 }),
+    mk([[1250, 2610], [1100, 2590], [990, 2540]], { w: 2.2, profile: 'even', color: INK, alpha: .7, bristles: 1 }),
+  ];
+
+  // 4a. drying bed (y ≈ 3150)
+  S.bed = mkWash([[300, 3060], [1120, 3060], [1150, 3250], [270, 3250]], '#c8a978', .6);
+  S.bedEdge = [mk([[270, 3254], [1150, 3254]], { w: 12, profile: 'even', color: '#7a5a40', alpha: .6 }), mk([[300, 3056], [1120, 3056]], { w: 8, profile: 'even', color: '#7a5a40', alpha: .5 })];
+  S.beans = []; for (let i = 0; i < 70; i++) { const x = rnd(330, 1100), y = rnd(3090, 3225); S.beans.push({ x, y, s: mk([[x - 11, y], [x + 11, y + rnd(-3, 3)]], { w: 17, profile: 'leaf', color: mixc('#a8ab6c', '#c9b27a', rnd()), alpha: .7, bristles: 1 }) }); }
+  S.beans.sort((a, b) => a.x - b.x);
+  S.sun = mkWash(ellipsePts(1480, 3070, 90, 90, 36), '#e5b84a', .7);
+  S.rays = Array.from({ length: 8 }, (_, i) => { const a = i / 8 * Math.PI * 2; return mk([[1480 + Math.cos(a) * 115, 3070 + Math.sin(a) * 115], [1480 + Math.cos(a) * 165, 3070 + Math.sin(a) * 165]], { w: 8, profile: 'tip', color: '#d9a43a', alpha: .55, bristles: 1 }); });
+
+  // 4b. roast swatches (y ≈ 3560)
+  const SW = ['#a7a873', '#b07a45', '#6e4428', '#3a2418'];
+  S.sw = SW.map((c, i) => { const x = 420 + i * 360, y = 3560; return {
+    x, y, c,
+    dabs: [0, 1, 2].map(k => mk([[x - 110, y - 40 + k * 40 + rnd(-6, 6)], [x, y - 40 + k * 40 + rnd(-8, 8)], [x + 110, y - 40 + k * 40 + rnd(-6, 6)]], { w: 54, profile: 'brush', color: c, alpha: .62, bristles: 6 })),
+    bean: mk([[x - 26, y - 120], [x + 26, y - 120]], { w: 40, profile: 'leaf', color: c, alpha: .85, bristles: 2 }),
+    crease: mk([[x - 18, y - 122], [x, y - 116], [x + 18, y - 122]], { w: 3, profile: 'even', color: mixc(c, '#000000', .45), alpha: .7, bristles: 0 }),
+  }; });
+  S.arrow = mk([[300, 3670], [900, 3685], [1600, 3670]], { w: 3, profile: 'even', color: INK2, alpha: .7, bristles: 1 });
+  S.arrowHead = [mk([[1570, 3652], [1602, 3670]], { w: 3, profile: 'even', color: INK2, alpha: .7, bristles: 0 }), mk([[1570, 3688], [1602, 3670]], { w: 3, profile: 'even', color: INK2, alpha: .7, bristles: 0 })];
+
+  // 5. cup (centre 900, 4330)
+  const ux = 900, uy = 4330;
+  S.saucer = mkWash(ellipsePts(ux, uy + 190, 330, 52, 48), '#b9c3c9', .55);
+  S.cup = mkWash([[ux - 200, uy - 120], [ux + 200, uy - 120], [ux + 175, uy + 60], [ux + 120, uy + 170], [ux - 120, uy + 170], [ux - 175, uy + 60]], '#dfe3e2', .9);
+  S.cupShade = mk([[ux + 160, uy - 100], [ux + 150, uy + 50], [ux + 100, uy + 150]], { w: 50, profile: 'leaf', color: '#9fb0b8', alpha: .45, bristles: 3 });
+  S.cupEdge = mk([[ux - 200, uy - 120], [ux - 175, uy + 60], [ux - 120, uy + 170], [ux + 120, uy + 170], [ux + 175, uy + 60], [ux + 200, uy - 120]], { w: 5, profile: 'even', color: '#5f7486', alpha: .55, bristles: 2 });
+  S.rim = mk(ellipsePts(ux, uy - 120, 200, 40, 30, 0, .005).concat([[ux + 200, uy - 119]]), { w: 5, profile: 'even', color: '#5f7486', alpha: .6, bristles: 1 });
+  S.handle = mk([[ux + 190, uy - 80], [ux + 270, uy - 70], [ux + 280, uy + 10], [ux + 175, uy + 50]], { w: 22, profile: 'even', color: '#c7ced0', alpha: .8, bristles: 3 });
+  S.coffee = mkWash(ellipsePts(ux, uy - 116, 180, 32, 36, 0, .01), '#5a3420', .95);
+  S.crema = mk(ellipsePts(ux, uy - 116, 150, 24, 20, 0, .02).concat([[ux + 150, uy - 115]]), { w: 10, profile: 'even', color: '#b5834f', alpha: .5, bristles: 2 });
+  S.stream = mk([[ux + 30, uy - 560], [ux + 18, uy - 300], [ux + 10, uy - 120]], { w: 13, profile: 'even', color: '#4a2a18', alpha: .75, bristles: 2 });
+  S.steam = [-70, 0, 70].map((dx, i) => ({ dx, ph: i * 2.1 }));
+  // hand-painted arrows leading the eye down the page between entries
+  S.arrows = [[1880, 2170, 14.0], [2770, 3000, 21.0], [3810, 4050, 30.0]].map(([y0, y1, t0], i) => {
+    const x = 960 + (i % 2 ? 30 : -20);
+    return { t0, body: mk([[x, y0], [x + 26, (y0 + y1) / 2], [x - 6, y1]], { w: 7, profile: 'tip', color: INK2, alpha: .7, bristles: 2 }),
+      heads: [mk([[x - 34, y1 - 34], [x - 6, y1 + 2]], { w: 6, profile: 'even', color: INK2, alpha: .7, bristles: 1 }), mk([[x + 26, y1 - 30], [x - 6, y1 + 2]], { w: 6, profile: 'even', color: INK2, alpha: .7, bristles: 1 })] };
+  });
+  S.cl2 = mk([[1260, 4140], [1180, 4170], [1110, 4200]], { w: 2.2, profile: 'even', color: INK, alpha: .7, bristles: 1 });
+}
+
+// ---------- paper ----------
+let PAPERPAT = null;
+function makePaper() {
+  const c = document.createElement('canvas'); c.width = c.height = 1024; const g = c.getContext('2d');
+  const img = g.createImageData(1024, 1024), d = img.data, base = hex(PAPER), rr = mulberry(99);
+  // seamless tile: periodic 2D value noise, three octaves
+  const OCT = [[5, .5], [14, .3], [40, .2]].map(([G, a]) => ({ G, a, v: Array.from({ length: G * G }, () => rr()) }));
+  const pn = (o, x, y) => { const fx = x / 1024 * o.G, fy = y / 1024 * o.G, ix = Math.floor(fx), iy = Math.floor(fy), ux = fx - ix, uy = fy - iy, sx = ux * ux * (3 - 2 * ux), sy = uy * uy * (3 - 2 * uy);
+    const v = (a, b) => o.v[((b % o.G) * o.G) + (a % o.G)]; return lerp(lerp(v(ix, iy), v(ix + 1, iy), sx), lerp(v(ix, iy + 1), v(ix + 1, iy + 1), sx), sy); };
+  for (let y = 0; y < 1024; y++) for (let x = 0; x < 1024; x++) {
+    let n = 0; for (const o of OCT) n += o.a * (pn(o, x, y) - .5);
+    n = n * .07 + (rr() - .5) * .03;
+    const i = (y * 1024 + x) * 4; for (let k = 0; k < 3; k++) d[i + k] = clamp(base[k] * (1 + n), 0, 255); d[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  for (let f = 0; f < 3500; f++) { const x = rr() * 1024, y = rr() * 1024, a = rr() * 6.28, l = 4 + rr() * 14; g.strokeStyle = rr() < .5 ? 'rgba(120,95,60,.07)' : 'rgba(255,255,250,.18)'; g.lineWidth = .7; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a + .6) * l * .5, y + Math.sin(a + .6) * l * .5, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+  PAPERPAT = ctx.createPattern(c, 'repeat');
+}
+
+// ---------- timeline ----------
+const T = {
+  q: .3, tilt1: 5.0, branch: [6.0, 8.6], leaves: [6.6, 9.4], flowers: [8.8, 9.8], cherries: [9.4, 11.2], ripen: [11.0, 13.4], n1: 10.0, n2: 10.6,
+  push: 14.0, skin: [15.0, 15.8], pulp: [15.6, 16.4], seeds: [16.2, 17.4], cn: [17.0, 17.5, 18.0],
+  tilt2: 21.0, bed: [22.0, 22.8], beans: [22.6, 23.6], sun: [22.4, 23.2], dn: 23.2,
+  sw: [24.2, 25.0, 25.8, 26.6], swDur: .8, arrow: 27.2, rn: 27.4,
+  tilt3: 30.0, cup: [31.0, 32.4], pour: [32.6, 34.0], steam: 34.2, un: 33.0,
+  pull: 37.0, ans: 39.2,
+};
+const RIPE = ['#7f9a45', '#b5a63e', '#d0702c', '#b8322a'];
+function cherryColor(i, t) {
+  const c = S.cherries[i], st = T.ripen[0] + (c.ni * .3 + c.k * .07), u = seg(t, st, st + 1.4);
+  const band = Math.min(3, Math.floor(u * 4 + .0001)); const f = clamp(u * 4 - band); // quantized bands, blended briefly
+  return mixc(RIPE[band], RIPE[Math.min(3, band + 1)], ss(clamp((f - .7) / .3)) * (band < 3 ? 1 : 0));
+}
+
+function render(t) {
+  TX.length = 0;
+  const k = cam(t); CAM = k;
+  const s = k.s * W / 1920;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#3a3029'; ctx.fillRect(0, 0, W, H);
+  ctx.setTransform(s, 0, 0, s, W / 2 - k.x * s, H / 2 - k.y * s);
+  // sheet shadow + paper
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(18, 26, SHEET.w, SHEET.h);
+  ctx.fillStyle = PAPERPAT; ctx.fillRect(0, 0, SHEET.w, SHEET.h);
+  const vis = (y0, y1) => y1 > k.y - 560 / k.s && y0 < k.y + 560 / k.s;
+
+  // 1. the question
+  if (vis(300, 800)) note('Where does a cup of coffee begin?', 960, 560, T.q, t, { size: 84, font: 'Corm', italic: true, weight: 500, dur: 1.5, align: 'center', id: 'q' });
+
+  // 2. branch
+  if (vis(900, 2050)) {
+    drawList(S.branch, seg(t, ...T.branch));
+    const lp = seg(t, ...T.leaves);
+    S.leaves.forEach((L, i) => { const f = clamp(lp * S.leaves.length * .6 - i * .6); if (f > 0) drawList(L.strokes, f); });
+    const fp = seg(t, ...T.flowers); S.flowers.forEach((F, i) => drawList(F.st, clamp(fp * 2 - i * .3)));
+    const cp = seg(t, ...T.cherries);
+    S.cherries.forEach((c, i) => { const f = clamp(cp * 1.6 - i / S.cherries.length * .6); if (f > 0) { const col = cherryColor(i, t); drawWash(c.w, eo(f), col, 'y'); drawS(c.shade, f); ctx.fillStyle = rgba(PAPER, .75 * f); ctx.beginPath(); ctx.ellipse(c.x - 8, c.y - 9, 6, 4, -.5, 0, 7); ctx.fill(); } });
+    note('Coffea arabica', 1240, 1760, T.n1, t, { size: 50, id: 'n1' });
+    note('first fruit after about 3 years', 1240, 1820, T.n2, t, { size: 40, id: 'n2', dur: .8 });
+    leader(S.l1, T.n2 + .4, t);
+  }
+
+  // 3. cherry cross-section
+  if (vis(2150, 2760)) {
+    drawWash(S.skin, eo(seg(t, ...T.skin)), null, 'x'); drawS(S.skinEdge, seg(t, T.skin[0] + .3, T.skin[1] + .4));
+    drawWash(S.pulp, eo(seg(t, ...T.pulp)), null, 'x');
+    S.seeds.forEach((sd, i) => { const st = T.seeds[0] + i * .4, f = seg(t, st, st + .8); drawWash(sd.w, eo(f), null, 'y'); drawS(sd.edge, seg(t, st + .3, st + 1)); drawS(sd.crease, seg(t, st + .6, st + 1.1)); });
+    note('skin', 1262, 2300, T.cn[0], t, { size: 44, id: 'skin' });
+    note('pulp', 1262, 2440, T.cn[1], t, { size: 44, id: 'pulp' });
+    note('2 seeds = 2 beans', 1262, 2620, T.cn[2], t, { size: 44, id: 'seeds' });
+    S.cl.forEach((l, i) => leader(l, T.cn[i] + .2, t));
+    note('a ripe cherry, cut in half', 900 - 240, 2260 - 30, T.skin[0] + .5, t, { size: 30, font: 'Corm', italic: true, color: INK2, id: 'fig', check: false });
+  }
+
+  // 4. drying + roasting
+  if (vis(2950, 3780)) {
+    drawWash(S.bed, eo(seg(t, ...T.bed))); S.bedEdge.forEach((e, i) => drawS(e, seg(t, T.bed[0] + i * .2, T.bed[1] + .2)));
+    const bp = seg(t, ...T.beans); S.beans.forEach((b, i) => drawS(b.s, clamp(bp * 70 - i * .8)));
+    drawWash(S.sun, eo(seg(t, ...T.sun))); S.rays.forEach((r, i) => drawS(r, seg(t, T.sun[1] + i * .05, T.sun[1] + .4 + i * .05)));
+    note('sun-dried · about 3 weeks', 300, 3015, T.dn, t, { size: 44, id: 'dry' });
+    S.sw.forEach((w, i) => {
+      const st = T.sw[i], f = seg(t, st, st + T.swDur);
+      drawList(w.dabs, f); drawS(w.bean, seg(t, st + .4, st + .9)); drawS(w.crease, seg(t, st + .7, st + 1));
+      note(['0 MIN', '6 MIN', '10 MIN', '13 MIN'][i], w.x - 40, w.y + 110, st + .5, t, { size: 22, font: 'Plex', weight: 400, ls: '4px', color: INK2, dur: .4, id: 'm' + i });
+    });
+    drawS(S.arrow, seg(t, T.arrow, T.arrow + .8)); S.arrowHead.forEach(a => drawS(a, seg(t, T.arrow + .7, T.arrow + .9)));
+    note('roasted at about 200 °C', 1110, 3760, T.rn, t, { size: 44, id: 'roast' });
+  }
+
+  // 5. cup
+  if (vis(3900, 4700)) {
+    drawWash(S.saucer, eo(seg(t, T.cup[0], T.cup[0] + .6)));
+    drawWash(S.cup, eo(seg(t, T.cup[0] + .2, T.cup[0] + 1)), null, 'y');
+    drawS(S.cupShade, seg(t, T.cup[0] + .7, T.cup[1]));
+    drawS(S.cupEdge, seg(t, T.cup[0] + .6, T.cup[1])); drawS(S.rim, seg(t, T.cup[0] + .9, T.cup[1] + .2)); drawS(S.handle, seg(t, T.cup[0] + 1, T.cup[1] + .3));
+    // pour: a stream that grows in, then thins out as the coffee fills
+    const ps = seg(t, T.pour[0], T.pour[0] + .4), pe = seg(t, T.pour[1] - .3, T.pour[1]);
+    if (ps > 0 && pe < 1) { ctx.save(); ctx.beginPath(); ctx.rect(0, 4330 - 560 + 440 * pe, 1920, 600); ctx.clip(); drawS(S.stream, ps); ctx.restore(); }
+    drawWash(S.coffee, eo(seg(t, T.pour[0] + .3, T.pour[1])), null, 'x'); drawS(S.crema, seg(t, T.pour[1] - .3, T.pour[1] + .5));
+    // steam: thin wavy strokes rising (built each frame under a fixed seed)
+    if (t > T.steam) S.steam.forEach((st, i) => {
+      const a = seg(t, T.steam + i * .3, T.steam + i * .3 + 1.2); if (a <= 0) return;
+      const pts = []; for (let j = 0; j <= 8; j++) { const v = j / 8; pts.push([900 + st.dx + Math.sin(v * 5 + t * 1.3 + st.ph) * 18 * v, 4330 - 160 - v * 260]); }
+      const s2 = withSeed(100 + i, () => mk(pts, { w: 10, profile: 'brush', color: '#9aa3a6', alpha: .35 * (1 - .4 * Math.sin(t * .9 + i)), bristles: 2 }));
+      drawS(s2, a);
+    });
+    note('about 70 beans in one cup', 1270, 4120, T.un, t, { size: 44, id: 'cup' });
+    leader(S.cl2, T.un + .3, t);
+  }
+  S.arrows.forEach(A => { drawS(A.body, eio(seg(t, A.t0, A.t0 + .8))); A.heads.forEach(h => drawS(h, seg(t, A.t0 + .75, A.t0 + 1.0))); });
+  // vignette (screen space)
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const g = ctx.createRadialGradient(W / 2, H / 2, H * .45, W / 2, H / 2, H * 1.05); g.addColorStop(0, 'rgba(60,40,20,0)'); g.addColorStop(1, 'rgba(60,40,20,.14)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // the answer, beside the whole sheet
+  if (t > T.ans - .1) {
+    const sCam = CAM; CAM = { x: 960, y: 540, s: 1 };
+    ctx.setTransform(W / 1920, 0, 0, W / 1920, 0, 0);
+    note('It begins as a seed,', 1210, 500, T.ans, t, { size: 64, font: 'Corm', italic: true, weight: 500, color: '#efe4cf', id: 'a1', dur: 1.0, halo: false });
+    note('about 3 years before.', 1210, 590, T.ans + .9, t, { size: 64, font: 'Corm', italic: true, weight: 500, color: '#efe4cf', id: 'a2', dur: 1.0, halo: false });
+    CAM = sCam;
+  }
+}
+
+// ---------- events for the mixer ----------
+const EV = [];
+EV.push({ t: T.q, type: 'pencil', d: 1.5 });
+EV.push({ t: T.tilt1, type: 'tilt' }); EV.push({ t: T.push, type: 'tilt' }); EV.push({ t: T.tilt2, type: 'tilt' }); EV.push({ t: T.tilt3, type: 'tilt' }); EV.push({ t: T.pull, type: 'pull' });
+[[...T.branch], [...T.leaves], [...T.flowers], [...T.cherries], [...T.skin], [...T.pulp], [...T.seeds], [...T.bed], [...T.beans], [...T.sun], [...T.cup]].forEach(([a, b]) => EV.push({ t: a, type: 'brush', d: b - a }));
+T.sw.forEach(s => EV.push({ t: s, type: 'dab', d: T.swDur }));
+[14.0, 21.0, 30.0].forEach(x => EV.push({ t: x, type: 'brush', d: .9 }));
+[T.n1, T.n2, ...T.cn, T.dn, T.rn, T.un, T.ans, T.ans + .9].forEach(n => EV.push({ t: n, type: 'pencil', d: .8 }));
+EV.push({ t: T.pour[0] - .3, type: 'pour', d: T.pour[1] - T.pour[0] + .5 });
+EV.push({ t: T.cup[1], type: 'clink' });
+EV.sort((a, b) => a.t - b.t);
+
+window.DUR = DUR; window.EV = EV; window.render = render;
+window.TEXTS = t => { render(t); return TX.map(o => ({ ...o })); };
+(async () => {
+  await Promise.all(['500 40px Caveat', 'italic 500 40px Corm', '400 20px Plex'].map(f => document.fonts.load(f)));
+  build(); makePaper(); render(0); window.READY = true;
+})();
+</script></body></html>

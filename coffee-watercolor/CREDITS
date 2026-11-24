@@ -1,0 +1,19 @@
+Where a Cup Begins: credits
+
+Fonts (all SIL Open Font License 1.1, fonts/OFL.txt; source https://github.com/google/fonts/tree/main/ofl)
+- Cormorant Garamond (regular and italic), © The Cormorant Project Authors (Christian Thalmann)
+- Caveat, © The Caveat Project Authors (Impallari Type)
+- IBM Plex Mono, © IBM Corp.
+
+Tools
+- Rendering, events and reading-time checks: the Lemo-Opuscar library (core/render, core/lib.js, core/audio/sfx.py), MIT licence, https://github.com/lemomo-ai/lemo-opuscar. Used as tooling; imported at build time, not copied into this folder.
+- Headless Chromium (Playwright) for frame capture; ffmpeg for encoding and loudness normalisation.
+
+Music and sound
+- Original score and all sound effects synthesised in code for this film (synth.py, mix.py). No samples, no recordings, no third-party music.
+
+Images
+- Every image is drawn in code at render time. No photos, stock footage or generated images.
+
+Facts (general rules of thumb, rounded)
+- An arabica coffee plant first bears fruit at about 3 years; a cherry usually holds 2 seeds; sun-drying takes about 3 weeks; roasting runs at about 200 °C for roughly 10–14 minutes; about 70 beans (~7 g) make one cup.

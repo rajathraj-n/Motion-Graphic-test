@@ -1,0 +1,355 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Seven Steps to a Cup</title>
+<style>
+@font-face{font-family:Archivo;src:url(fonts/Archivo.ttf) format("truetype");font-weight:100 900;font-stretch:62% 125%}
+html,body{margin:0;background:#E7E5DF;overflow:hidden}canvas{display:block}
+</style></head><body><canvas id="c"></canvas>
+<script type="module">
+import { clamp, lerp, seg } from '/core/lib.js';
+
+const W = innerWidth, H = innerHeight;
+const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d');
+
+// ---------- palette & system ----------
+const C = { wall: '#E7E5DF', paper: '#FFFFFF', ink: '#121212', g1: '#E4E2DC', g2: '#C9C7C1', g3: '#8E8C86', sig: '#D7261E' };
+const BPM = 120, BEAT = 60 / BPM;
+const DUR = 38;
+const ML = 96, COLW = (1920 - 2 * ML - 11 * 24) / 12;      // 12 columns, 24 px gutters
+const colX = c => ML + c * (COLW + 24);
+
+// precise ease cubic-bezier(.7,0,.2,1)
+function bez(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sx = u => ((ax * u + bx) * u + cx) * u, sy = u => ((ay * u + by) * u + cy) * u;
+  const dx = u => (3 * ax * u + 2 * bx) * u + cx;
+  return x => { x = clamp(x); let u = x; for (let i = 0; i < 8; i++) { const d = dx(u); if (Math.abs(d) < 1e-6) break; u -= (sx(u) - x) / d; u = clamp(u); } return sy(u); };
+}
+const PE = bez(.7, 0, .2, 1);
+const snap = (t, a, b) => PE(seg(t, a, b));
+
+// ---------- pages: 4 x 2, boustrophedon ----------
+const PG = i => { const row = i < 4 ? 0 : 1, col = i < 4 ? i : 7 - i; return { x: col * 2000, y: row * 1160 }; };
+const PC = i => { const p = PG(i); return { x: p.x + 960, y: p.y + 540 }; };
+
+// page arrivals (camera lands on the beat)
+const ARR = [0, 6, 10, 14, 18, 23, 27.25, 34];
+const PANDUR = 0.5;
+
+// ---------- camera ----------
+const WALL = { cx: (3 * 2000 + 1920) / 2, cy: (1160 + 1080) / 2, s: 0.225, r: 0 };
+const pageCam = i => ({ cx: PC(i).x, cy: PC(i).y, s: 1, r: 0 });
+const A4 = { x: PG(4).x + 1540, y: PG(4).y + 540 };
+const A5 = { x: PG(5).x + 1340, y: PG(5).y + 540 };
+const KEYS = [
+  [0, pageCam(0)], [5.5, pageCam(0)], [6, pageCam(1)], [9.5, pageCam(1)], [10, pageCam(2)], [13.5, pageCam(2)],
+  [14, pageCam(3)], [17.5, pageCam(3)], [18, pageCam(4)], [21.25, pageCam(4)],
+  [22, { cx: A4.x, cy: A4.y, s: 1, r: -Math.PI / 2 }], [22.5, { cx: A4.x, cy: A4.y, s: 1, r: -Math.PI / 2 }],
+  [23, pageCam(5)], [26.0, pageCam(5)], [26.5, { cx: A5.x, cy: A5.y, s: 2.2, r: 0 }], [26.75, { cx: A5.x, cy: A5.y, s: 2.2, r: 0 }],
+  [27.25, pageCam(6)], [31, pageCam(6)], [31.75, WALL], [33.25, WALL], [34, pageCam(7)], [DUR, pageCam(7)],
+];
+function cam(t) {
+  for (let i = 0; i < KEYS.length - 1; i++) {
+    const [t0, a] = KEYS[i], [t1, b] = KEYS[i + 1];
+    if (t <= t1) {
+      const u = snap(t, t0, t1);
+      // zoom interpolated in log space so pull-outs feel even
+      return { cx: lerp(a.cx, b.cx, u), cy: lerp(a.cy, b.cy, u), s: Math.exp(lerp(Math.log(a.s), Math.log(b.s), u)), r: lerp(a.r, b.r, u) };
+    }
+  }
+  return KEYS[KEYS.length - 1][1];
+}
+function applyCam(k) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.translate(W / 2, H / 2); ctx.rotate(k.r); ctx.scale(k.s * W / 1920, k.s * W / 1920); ctx.translate(-k.cx, -k.cy); }
+function w2s(k, x, y) { const s = k.s * W / 1920, dx = (x - k.cx) * s, dy = (y - k.cy) * s, c = Math.cos(k.r), n = Math.sin(k.r); return [W / 2 + dx * c - dy * n, H / 2 + dx * n + dy * c]; }
+
+// ---------- the exception: one red dot (linear, unsnapped) ----------
+const DOT = [ // [t, x, y, r] world positions; linear between
+  [0, PG(0).x - 60, PG(0).y + 600, 22], [1.5, PG(0).x + 1340, PG(0).y + 618, 22],
+  [5.4, PG(0).x + 1340, PG(0).y + 618, 22], [6.2, PG(1).x + 1180, PG(1).y + 300, 22], [6.6, PG(1).x + 1180, PG(1).y + 300, 22], [8.0, PG(1).x + 1520, PG(1).y + 338, 22],
+  [9.4, PG(1).x + 1520, PG(1).y + 338, 22], [10.3, PG(2).x + 1340, PG(2).y + 540, 22], [10.9, PG(2).x + 1340, PG(2).y + 540, 150],
+  // cut at 11.0; red half handled separately until 13.75
+  [13.75, PG(2).x + 1400, PG(2).y + 540, 22],
+  [14.2, PG(3).x + 1010, PG(3).y + 540, 22], [17.4, PG(3).x + 1010, PG(3).y + 540, 22],
+  [18.6, PG(4).x + 1200, PG(4).y + 420, 22], [19.5, PG(4).x + 1200, PG(4).y + 420, 22], [21.0, PG(4).x + 1240 + 600 + 40, PG(4).y + 400 + 5 * 56 + 20, 22],
+  [22.5, PG(4).x + 1240 + 600 + 40, PG(4).y + 400 + 5 * 56 + 20, 22], [23.6, PG(5).x + 1590, PG(5).y + 300, 22], [26.6, PG(5).x + 1590, PG(5).y + 300, 22],
+  [27.6, PG(6).x + 1340, PG(6).y + 200, 18], [30.0, PG(6).x + 1340, PG(6).y + 200, 16], [30.5, PG(6).x + 1340, PG(6).y + 560, 13],
+  [32.25, PG(6).x + 1340, PG(6).y + 560, 13], [34.5, 0, 0, 0], // last key filled at init (period position)
+];
+function dotAt(t) {
+  for (let i = 0; i < DOT.length - 1; i++) {
+    const a = DOT[i], b = DOT[i + 1];
+    if (t <= b[0]) { const u = seg(t, a[0], b[0]); return { x: lerp(a[1], b[1], u), y: lerp(a[2], b[2], u), r: lerp(a[3], b[3], u) }; }
+  }
+  const z = DOT[DOT.length - 1]; return { x: z[1], y: z[2], r: z[3] };
+}
+
+// ---------- type helpers ----------
+const F = (w, s) => `${w} ${s}px Archivo`;
+const TX = [];   // texts drawn this frame (for readcheck)
+let CAMK = null;
+function revealText(str, x, y, size, weight, color, t0, t1, t, opts = {}) {
+  // clip-reveal: rises out from below the baseline at t0, leaves upward at t1
+  if (t < t0 || t > t1 + 0.3) return;
+  const pin = snap(t, t0, t0 + (opts.inDur ?? BEAT / 2)), pout = snap(t, t1, t1 + 0.25);
+  ctx.save();
+  ctx.font = F(weight, size); ctx.letterSpacing = size >= 90 ? `${-0.02 * size}px` : '0px';
+  const m = ctx.measureText(str), asc = size * 0.95, desc = size * 0.25;
+  const lb = m.actualBoundingBoxLeft || 0;
+  ctx.beginPath(); ctx.rect(x - 4, y - asc, m.width + 8, asc + desc); ctx.clip();
+  ctx.fillStyle = color; ctx.textBaseline = 'alphabetic';
+  const dy = (1 - pin) * (asc + desc) - pout * (asc + desc);
+  ctx.fillText(str, x + lb, y + dy);   // optical flush-left: cancel the left bearing
+  ctx.restore();
+  if (pin >= 1 && pout <= 0 && !opts.nocheck) {
+    const [x0, y0] = w2s(CAMK, x, y - asc), [x1, y1] = w2s(CAMK, x + m.width, y + desc);
+    TX.push({ id: opts.id || str, text: str, x0: Math.min(x0, x1), y0: Math.min(y0, y1), x1: Math.max(x0, x1), y1: Math.max(y0, y1) });
+  }
+}
+function rule(x, y, len, t0, t, color = C.ink, w = 1) { // line grows linearly along its length
+  const p = seg(t, t0, t0 + BEAT); if (p <= 0) return;
+  ctx.fillStyle = color; ctx.fillRect(x, y, len * p, w);
+}
+
+// ---------- page content ----------
+const STEPS = [
+  { n: '01', w: 'seed.', note: 'One seed, planted in shade.', tech: 'step 01 / 07 · coffea arabica' },
+  { n: '02', w: 'three years.', note: 'First fruit at about 3 years.', tech: 'step 02 / 07 · 1 bar = 1 year' },
+  { n: '03', w: 'two seeds.', note: 'Each cherry holds 2 seeds.', tech: 'step 03 / 07 · 1 cherry = 2 beans' },
+  { n: '04', w: 'three weeks.', note: 'Sun-dried for 3 weeks.', tech: 'step 04 / 07 · 1 module = 1 day' },
+  { n: '200°', w: 'roast.', note: '200 °C turns it brown.', tech: 'step 05 / 07 · 1 bar = 2 minutes' },
+  { n: '06', w: 'grind.', note: 'Ground fresh to brew.', tech: 'step 06 / 07 · 1 → 4 → 16 → 64' },
+  { n: '07', w: 'one cup.', note: 'About 70 beans in one cup.', tech: 'step 07 / 07 · 1 dot = 1 bean' },
+];
+function textIn(i) { return i === 0 ? 2.0 : ARR[i]; }
+function textOut(i) { return i === 6 ? 30.75 : i === 4 ? 21.1 : i === 5 ? 26.0 : ARR[i + 1] - PANDUR; }
+
+function drawPaper(i, t) {
+  const p = PG(i);
+  // knife-cut deletion on the wall (pages 0..6), nearest to page 7 first
+  let sy = 1, cutLine = -1;
+  if (i < 7) {
+    const order = [6, 0, 5, 1, 4, 2, 3].indexOf(i);   // distance from page 7 (col 0,row 1)
+    const c0 = 32.5 + order * 0.125;
+    cutLine = seg(t, c0, c0 + 0.2);
+    sy = 1 - snap(t, c0 + 0.2, c0 + 0.45);
+    if (sy <= 0) return false;
+  }
+  ctx.save();
+  ctx.translate(p.x, p.y + 540); ctx.scale(1, sy); ctx.translate(-p.x, -(p.y + 540));
+  ctx.fillStyle = C.paper; ctx.fillRect(p.x, p.y, 1920, 1080);
+  // column grid in light grey (it grows from the dot in the opening)
+  const g = i === 0 ? seg(t, 1.5, 2.0) : 1;
+  ctx.fillStyle = C.g1;
+  for (let c = 0; c <= 12; c++) {
+    const x = c < 12 ? colX(c) : 1920 - ML;
+    const h = 1080 * g; ctx.fillRect(p.x + x, p.y + 540 - h / 2, 1, h);
+  }
+  const hw = 1920 * g; ctx.fillRect(p.x + 960 - hw / 2, p.y + 96, hw, 1); ctx.fillRect(p.x + 960 - hw / 2, p.y + 1080 - 96, hw, 1);
+  return { sy, cutLine, restore: () => ctx.restore() };
+}
+
+function drawStepText(i, t) {
+  const p = PG(i), s = STEPS[i], t0 = textIn(i), t1 = textOut(i);
+  const x = p.x + colX(0);
+  if (i === 4) {
+    revealText(s.n, x, p.y + 560, 400, 800, C.ink, 19.0, t1, t, { inDur: 0.25 });
+    revealText(s.w, x, p.y + 700, 110, 700, C.ink, t0, t1, t);
+  } else {
+    // numeral climbs in eased steps, one module at a time
+    revealText(s.n, x, p.y + 430, 300, 800, C.ink, t0, t1, t);
+    revealText(s.w, x, p.y + 580, 110, 700, C.ink, t0 + BEAT / 2, t1, t);
+  }
+  const ny = p.y + 690 + (i === 4 ? 60 : 0);
+  if (t < t1 + 0.3) { ctx.globalAlpha = 1 - snap(t, t1, t1 + 0.25); rule(x, ny - 40, colX(5) - colX(0), t0 + BEAT, t); ctx.globalAlpha = 1; }
+  revealText(s.note, x, ny, 30, 500, C.ink, t0, t1, t, { id: 'note' + i });
+  revealText(s.tech, x, p.y + 1080 - 56, 19, 500, C.g3, t0 + BEAT * 1.5, t1, t, { nocheck: true });
+}
+
+// --- artifacts ---
+function art0(t) { // soil bar
+  const p = PG(0), w = 640 * snap(t, 2.25, 2.5);
+  ctx.fillStyle = C.ink; ctx.fillRect(p.x + 1340 - 320, p.y + 640, w, 40);
+  // three light-grey root lines grow (secondary voice)
+  for (let k = 0; k < 3; k++) { const L = 160 * seg(t, 3 + k * BEAT, 3.5 + k * BEAT); ctx.fillStyle = C.g2; ctx.fillRect(p.x + 1300 + k * 40, p.y + 680, 8, L); }
+}
+function art1(t) { // three years: bars rise
+  const p = PG(1), base = p.y + 820;
+  [140, 300, 460].forEach((h, k) => {
+    const x = p.x + 1220 + k * 120, hh = h * snap(t, 6.25 + k * 0.5, 6.5 + k * 0.5);
+    ctx.fillStyle = C.ink; ctx.fillRect(x, base - hh, 104, hh + 1);
+    if (hh > 0) { ctx.font = F(500, 19); ctx.fillStyle = C.g3; ctx.letterSpacing = '0px'; ctx.fillText('year ' + (k + 1), x, base + 32); }
+  });
+  ctx.fillStyle = C.g2; ctx.fillRect(p.x + 1180, base, 420 * snap(t, 6, 6.5), 2);
+}
+function art2(t) { // cherry: knife cut, two halves
+  const p = PG(2), cx = p.x + 1340, cy = p.y + 540;
+  if (t < 11.0) return false;   // drawn by the dot
+  const R = 150;
+  const part = snap(t, 11.5, 12.0) * 60;
+  // knife line crossing vertically (linear)
+  const kl = seg(t, 11.0, 11.25), ko = 1 - seg(t, 11.5, 11.75);
+  // left half: becomes the second seed, grey (secondary voice)
+  const gl = seg(t, 12.0, 12.5);
+  ctx.fillStyle = mix(C.sig, C.g2, gl);
+  ctx.beginPath(); ctx.arc(cx - part, cy, R, Math.PI / 2, Math.PI * 1.5); ctx.closePath(); ctx.fill();
+  // right half: red, shrinks back to a dot while its flat side rounds out (13.0 → 13.75)
+  const sh = snap(t, 13.0, 13.75);
+  if (t < 13.75) {
+    const r = lerp(R, 22, sh), k = sh, x = lerp(cx + part, cx + 60, sh);
+    ctx.fillStyle = C.sig; ctx.beginPath();
+    ctx.ellipse(x, cy, r, r, 0, -Math.PI / 2, Math.PI / 2);
+    ctx.ellipse(x, cy, Math.max(0.01, r * k), r, 0, Math.PI / 2, Math.PI * 1.5);
+    ctx.fill();
+  }
+  if (kl > 0 && ko > 0) { ctx.fillStyle = C.ink; ctx.globalAlpha = ko; ctx.fillRect(cx - 1, cy - 220, 2, 440 * kl); ctx.globalAlpha = 1; }
+  if (t > 12.0) {
+    ctx.font = F(500, 19); ctx.letterSpacing = '0px'; ctx.fillStyle = C.g3;
+    const a = seg(t, 12.0, 12.25);
+    ctx.save(); ctx.beginPath(); ctx.rect(cx - 260, cy + 180, 600 * a, 40); ctx.clip();
+    ctx.fillText('seed 1', cx - 60 - 150, cy + 200); ctx.fillText('seed 2', cx + 60 + 10, cy + 200); ctx.restore();
+  }
+  return t < 13.75;
+}
+const mix = (a, b, u) => { const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16); const ch = s => [(s >> 16) & 255, (s >> 8) & 255, s & 255]; const A = ch(pa), B = ch(pb); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], u))).join(',')})`; };
+const DAYS = []; // 7 x 3 grid of day modules, ordered by distance from the dot
+{
+  const p = PG(3), dot = { x: p.x + 1010, y: p.y + 540 };
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 7; c++) { const x = p.x + 1100 + c * 88, y = p.y + 408 + r * 88; DAYS.push({ x, y, d: Math.hypot(x + 40 - dot.x, y + 40 - dot.y) }); }
+  DAYS.sort((a, b) => a.d - b.d); DAYS.forEach((d, i) => d.t = 14.5 + i * BEAT / 4);
+}
+function art3(t) {
+  ctx.fillStyle = C.g1; DAYS.forEach(d => ctx.fillRect(d.x, d.y, 80, 80));
+  ctx.fillStyle = C.ink; DAYS.forEach(d => { const w = 81 * snap(t, d.t - 0.1, d.t); if (w > 0) ctx.fillRect(d.x, d.y, w, 80); });
+  const p = PG(3); ctx.font = F(500, 19); ctx.letterSpacing = '0px'; ctx.fillStyle = C.g3;
+  if (t > 14.5) { ctx.fillText('day 1', p.x + 1100, p.y + 400 - 14); ctx.fillText('day 21', p.x + 1100 + 6 * 88, p.y + 672 + 34); }
+}
+function art4(t) { // roast: six heat bars, grey (green) → black (brown)
+  const p = PG(4);
+  for (let k = 0; k < 6; k++) {
+    const y = p.y + 400 + k * 56, L = (100 + k * 100) * snap(t, 19.5 + k * BEAT / 2, 19.75 + k * BEAT / 2);
+    ctx.fillStyle = mix('#C9C7C1', '#121212', k / 5); ctx.fillRect(p.x + 1240, y, L, 40);
+  }
+}
+const CUTS = [24, 25, 26];
+function art5(t) { // grind: block cut 1 → 4 → 16 → 64
+  const p = PG(5), x0 = p.x + 1148, y0 = p.y + 348, S = 384;
+  let n = 1; CUTS.forEach(c => { if (t >= c + 0.25) n *= 2; });
+  const gap = 6 * snap(t % 1, 0.25, 0.5) ;
+  const k = n, cell = S / k;
+  ctx.fillStyle = C.ink;
+  for (let r = 0; r < k; r++) for (let c = 0; c < k; c++) {
+    // gaps open from the centre outward (re-flow, nearest first)
+    const g = (n === 1) ? 0 : 6;
+    const off = (v) => (v - (k - 1) / 2) * g * (t < CUTS[0] + 0.5 ? snap(t, CUTS[0] + 0.25, CUTS[0] + 0.5) : 1);
+    ctx.fillRect(x0 + c * cell + off(c) + g / 2, y0 + r * cell + off(r) + g / 2, cell - g + 0.5, cell - g + 0.5);
+  }
+  // knife lines on each cut
+  CUTS.forEach((c, j) => {
+    const a = seg(t, c, c + 0.2), o = 1 - seg(t, c + 0.2, c + 0.35);
+    if (a > 0 && o > 0) {
+      ctx.fillStyle = C.ink; ctx.globalAlpha = o;
+      const m = 2 ** (j + 1);
+      for (let q = 1; q < m; q++) { const v = q * S / m; if (q % 2 === 0 && j > 0) continue; ctx.fillRect(x0 - 40, y0 + v, (S + 80) * a, 1.5); ctx.fillRect(x0 + v, y0 - 40, 1.5, (S + 80) * a); }
+      ctx.globalAlpha = 1;
+    }
+  });
+  if (t > 23.5) { ctx.font = F(500, 19); ctx.letterSpacing = '0px'; ctx.fillStyle = C.g3; ctx.fillText(`${n * n} pieces`, x0, y0 + S + 36); }
+}
+const CUP = [];
+{
+  const p = PG(6), cx = p.x + 1340, cy = p.y + 560, pts = [];
+  for (let r = -8; r <= 8; r++) for (let c = -8; c <= 8; c++) { if (!r && !c) continue; pts.push({ x: cx + c * 34, y: cy + r * 34, d: Math.hypot(c, r) }); }
+  pts.sort((a, b) => a.d - b.d || a.x - b.x || a.y - b.y);
+  const sel = pts.slice(0, 69);
+  sel.sort((a, b) => b.d - a.d || a.x - b.x || a.y - b.y);   // fill from the rim inward
+  sel.forEach((q, i) => { q.t = 28.0 + i * (2.25 / 69); CUP.push(q); });
+}
+function art6(t) {
+  const p = PG(6);
+  ctx.strokeStyle = C.g2; ctx.lineWidth = 2; const a = seg(t, 27.5, 28.0);
+  ctx.beginPath(); ctx.arc(p.x + 1340, p.y + 560, 320, -Math.PI / 2, -Math.PI / 2 + a * Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = C.ink;
+  CUP.forEach(q => { const u = snap(t, q.t - 0.08, q.t); if (u > 0) { ctx.save(); ctx.beginPath(); ctx.rect(q.x - 14, q.y + 13 - 27 * u, 28, 27 * u); ctx.clip(); ctx.beginPath(); ctx.arc(q.x, q.y, 12, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } });
+}
+let PERIOD = null;
+function art7(t) {
+  const p = PG(7), x = p.x + colX(0);
+  revealText('coffee', x, p.y + 640, 300, 800, C.ink, 34.0, 99, t, { id: 'end' });
+  revealText('seed to cup · about 3 years · 7 steps', x, p.y + 1080 - 56, 19, 500, C.g3, 34.75, 99, t, { nocheck: true });
+  if (t > 34.5) { const L = (colX(5) - colX(0)) * seg(t, 34.5, 35.0); ctx.fillStyle = C.ink; ctx.fillRect(x, p.y + 740, L, 1); }
+  revealText('A process, one bean at a time.', x, p.y + 790, 30, 500, C.ink, 34.5, 99, t, { id: 'endnote' });
+}
+
+// ---------- frame ----------
+const ARTS = [art0, art1, art2, art3, art4, art5, art6, art7];
+function render(t) {
+  TX.length = 0;
+  const k = cam(t); CAMK = k;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = C.wall; ctx.fillRect(0, 0, W, H);
+  applyCam(k);
+  // draw only pages near the view
+  const view = 1100 / k.s;
+  for (let i = 0; i < 8; i++) {
+    const c = PC(i); if (Math.abs(c.x - k.cx) > view + 1200 || Math.abs(c.y - k.cy) > view + 800) continue;
+    const pr = drawPaper(i, t); if (!pr) continue;
+    if (i < 7) drawStepText(i, t);
+    if (i === 7) art7(t); else ARTS[i](t);
+    pr.restore();
+    if (pr.cutLine > 0 && pr.cutLine < 1 && pr.sy > 0) { const p = PG(i); ctx.fillStyle = C.ink; ctx.fillRect(p.x - 40, p.y + 539, (2000) * pr.cutLine, 3 / k.s); }
+  }
+  // the dot (exception): always red, linear
+  const d = dotAt(t);
+  const hidden = t >= 11.0 && t < 13.75;
+  if (!hidden) { ctx.fillStyle = C.sig; ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill(); }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  // rotate, hold, then label (screen-space, upright)
+  if (t > 22.0 && t < 22.6) {
+    const p = PG(4), a = seg(t, 22.0, 22.25), o = 1 - seg(t, 22.45, 22.6);
+    const [bx, by] = w2s(k, p.x + 1240, p.y + 420), [ex, ey] = w2s(k, p.x + 1240 + 600, p.y + 400 + 5 * 56 + 20);
+    ctx.font = F(600, 26); ctx.letterSpacing = '0px'; ctx.fillStyle = C.ink; ctx.globalAlpha = o;
+    ctx.save(); ctx.beginPath(); ctx.rect(bx - 120, by + 20, 300 * a, 60); ctx.clip(); ctx.fillText('0 min · green', bx - 100, by + 56); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(ex + 50, ey - 40, 340 * a, 60); ctx.clip(); ctx.fillText('12 min · brown', ex + 56, ey + 8); ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ---------- events for the mixer ----------
+const EV = [];
+EV.push({ t: 0.0, type: 'glide', t1: 1.5 });
+EV.push({ t: 1.5, type: 'grid' });
+[0, 1, 2, 3, 4, 5, 6].forEach(i => { if (i) EV.push({ t: ARR[i] - PANDUR, type: 'pan' }); const t0 = textIn(i); EV.push({ t: t0, type: 'numeral' }); if (i === 4) EV.push({ t: 19.0, type: 'big' }); EV.push({ t: t0 + BEAT, type: 'pen' }); });
+EV.push({ t: 2.25, type: 'snap' }); [0, 1, 2].forEach(k => EV.push({ t: 6.5 + k * 0.5, type: 'snap', v: 0.7 + k * 0.15 }));
+EV.push({ t: 10.5, type: 'glide', t1: 10.9 });
+EV.push({ t: 11.0, type: 'knife' }); EV.push({ t: 11.5, type: 'slide' }); EV.push({ t: 13.0, type: 'glide', t1: 13.75 });
+DAYS.forEach(d => EV.push({ t: d.t, type: 'tick' }));
+EV.push({ t: 18.0, type: 'stop' });
+for (let k = 0; k < 6; k++) EV.push({ t: 19.75 + k * BEAT / 2, type: 'clack', v: 0.6 + k * 0.08 });
+EV.push({ t: 21.25, type: 'rotate' }); EV.push({ t: 22.5, type: 'pan' });
+EV.push({ t: 26.0, type: 'push' });
+CUTS.forEach(c => EV.push({ t: c, type: 'knife' }));
+
+CUP.forEach(q => EV.push({ t: q.t, type: 'tap' }));
+EV.push({ t: 30.5, type: 'land' });
+EV.push({ t: 31.0, type: 'pull' });
+for (let o = 0; o < 7; o++) EV.push({ t: 32.5 + o * 0.125, type: 'knife', v: 0.5 });
+EV.push({ t: 33.25, type: 'push' });
+EV.push({ t: 32.25, type: 'glide', t1: 34.5 });
+EV.push({ t: 34.0, type: 'numeral' }); EV.push({ t: 34.5, type: 'land' });
+EV.sort((a, b) => a.t - b.t);
+
+window.DUR = DUR; window.EV = EV; window.BPM = BPM;
+window.render = render;
+window.TEXTS = t => { render(t); return TX.map(o => ({ ...o })); };
+
+(async () => {
+  for (const w of [500, 600, 700, 800]) await document.fonts.load(F(w, 40));
+  // the period's position after "coffee"
+  ctx.font = F(800, 300); ctx.letterSpacing = '-6px';
+  const m = ctx.measureText('coffee');
+  const p7 = PG(7);
+  DOT[DOT.length - 1] = [34.5, p7.x + colX(0) + (m.actualBoundingBoxLeft || 0) + m.width + 30, p7.y + 640 - 26, 26];
+  render(0);
+  window.READY = true;
+})();
+</script></body></html>

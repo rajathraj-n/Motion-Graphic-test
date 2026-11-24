@@ -1,0 +1,338 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Specification for One Cup</title>
+<style>
+@font-face{font-family:Hand;src:url(fonts/ArchitectsDaughter-Regular.ttf) format("truetype")}
+@font-face{font-family:B612;src:url(fonts/B612-Regular.ttf) format("truetype");font-weight:400}
+@font-face{font-family:B612;src:url(fonts/B612-Bold.ttf) format("truetype");font-weight:700}
+html,body{margin:0;background:#0D1116;overflow:hidden}canvas{display:block}
+</style></head><body><canvas id="c"></canvas>
+<script type="module">
+import { clamp, lerp, seg, ss, eio, eo, back, mulberry, vnoise } from '/core/lib.js';
+
+const W = innerWidth, H = innerHeight;
+const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d');
+const DUR = 40, BEAT = 0.625, E8 = BEAT / 2;
+const SW = 3800, SH = 2000;            // sheet units
+const LINE = '#E7F0F9', BLUE = '#1f4488', TABLE = '#0D1116', STAMP = '#C8382E';
+const LW = { out: 3.2, det: 2.0, thin: 1.25, hair: .9 };
+
+// ---------- camera (sheet units) ----------
+const CAMS = [
+  [0, 960, 1000, 1.0], [6.25, 980, 990, 1.08], [7.5, 980, 990, 1.08], [8.75, 1560, 980, 1.25], [15.0, 1560, 980, 1.25], [16.25, 2230, 980, 1.25],
+  [17.5, 2230, 980, 1.25, 'cut'], [17.5, 2215, 1000, 2.4], [21.5, 2215, 1000, 2.4, 'cut'], [21.5, 2230, 980, 1.25], [21.6, 2230, 980, 1.25], [22.7, 2800, 980, 1.25],
+  [30.0, 2800, 980, 1.25], [31.25, 1900, 1000, 0.462], [DUR, 1900, 1000, 0.462],
+];
+function cam(t) {
+  for (let i = 0; i < CAMS.length - 1; i++) {
+    const a = CAMS[i], b = CAMS[i + 1];
+    if (t < b[0] || (t === b[0] && b[4] === 'cut')) {
+      if (a[4] === 'cut' || a[0] === b[0]) return { x: a[1], y: a[2], z: a[3] };
+      const u = eio(seg(t, a[0], b[0]));
+      return { x: lerp(a[1], b[1], u), y: lerp(a[2], b[2], u), z: Math.exp(lerp(Math.log(a[3]), Math.log(b[3]), u)) };
+    }
+  }
+  const z = CAMS[CAMS.length - 1]; return { x: z[1], y: z[2], z: z[3] };
+}
+let K = null;
+const PXU = () => K.z * W / 1920;                  // screen px per sheet unit
+const lw = w => w * Math.pow(K.z, .65) / K.z;       // screen width = sheet width × zoom^0.65
+function w2s(x, y) { const s = PXU(); return [W / 2 + (x - K.x) * s, H / 2 + (y - K.y) * s]; }
+
+// ---------- sheet texture (procedural cyanotype) ----------
+let SHEETC = null;
+function makeSheet() {
+  const S = 2, c = document.createElement('canvas'); c.width = SW / S; c.height = SH / S; const g = c.getContext('2d');
+  const w = c.width, h = c.height, img = g.createImageData(w, h), d = img.data, r = mulberry(5);
+  const A = [0x16, 0x31, 0x68], B = [0x2A, 0x58, 0xA6];
+  const fb = (x, y) => vnoise(x / 140 + 17 * vnoise(y / 210)) * .5 + vnoise(x / 41 + y / 37 + 3) * .3 + vnoise((x - y) / 11) * .2;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let v = fb(x, y) * .55 + .25 * vnoise(y / 3.5 + vnoise(x / 300) * 4) ;            // coating streaks (horizontal)
+    const ex = Math.min(x, w - 1 - x, y, h - 1 - y); v += Math.max(0, 1 - ex / 26) * .5;  // bleached edges
+    for (const fx of [w / 3, 2 * w / 3]) { const dd = x - fx; if (Math.abs(dd) < 3) v += dd < 0 ? .35 : -.25; }
+    { const dd = y - h / 2; if (Math.abs(dd) < 3) v += dd < 0 ? .3 : -.22; }
+    v += (r() - .5) * .08; v = clamp(v);
+    const i = (y * w + x) * 4; for (let k = 0; k < 3; k++) d[i + k] = lerp(A[k], B[k], v); d[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  for (let k = 0; k < 900; k++) { g.fillStyle = r() < .5 ? 'rgba(210,225,245,.25)' : 'rgba(10,25,60,.3)'; g.fillRect(r() * w, r() * h, r() * 2 + .5, r() * 2 + .5); }
+  SHEETC = c;
+}
+
+// ---------- drafting primitives ----------
+const circ = (cx, cy, r, n = 72, a0 = -Math.PI / 2) => Array.from({ length: n + 1 }, (_, i) => [cx + Math.cos(a0 + i / n * Math.PI * 2) * r, cy + Math.sin(a0 + i / n * Math.PI * 2) * r]);
+const ell = (cx, cy, rx, ry, rot = 0, n = 64) => Array.from({ length: n + 1 }, (_, i) => { const a = i / n * Math.PI * 2, x = Math.cos(a) * rx, y = Math.sin(a) * ry; return [cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)]; });
+function plen(p) { let s = 0; for (let i = 1; i < p.length; i++) s += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]); return s; }
+const DASH = { center: [38, 8, 6, 8], hidden: [12, 8], phantom: [40, 8, 6, 8, 6, 8] };
+// draw a polyline on by arc length, with a glowing nib at the head
+function drawOn(pts, p, weight = 'out', dash = null, alpha = 1) {
+  if (p <= 0) return;
+  const L = plen(pts), target = L * clamp(p); let acc = 0, head = pts[0];
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (acc + l >= target) { const u = (target - acc) / (l || 1); head = [lerp(a[0], b[0], u), lerp(a[1], b[1], u)]; ctx.lineTo(head[0], head[1]); break; }
+    ctx.lineTo(b[0], b[1]); acc += l; head = b;
+  }
+  ctx.lineWidth = lw(LW[weight]); ctx.strokeStyle = `rgba(231,240,249,${.92 * alpha})`; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.setLineDash(dash ? DASH[dash].map(v => v * Math.pow(K.z, .3) / K.z * 1.6) : []); ctx.stroke(); ctx.setLineDash([]);
+  if (p < 1) nib(head[0], head[1]);
+}
+function nib(x, y) { const r = 14 / PXU(); const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(1, 'rgba(200,230,255,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+function paperFill(pts, a = 1) { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.fillStyle = `rgba(31,68,136,${a})`; ctx.fill(); }
+function hatch(clipPts, p, spacing = 12, ang = Math.PI / 4, weight = 'hair') {
+  if (p <= 0) return;
+  const xs = clipPts.map(q => q[0]), ys = clipPts.map(q => q[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  ctx.save(); ctx.beginPath(); clipPts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip();
+  const span = (x1 - x0) + (y1 - y0), n = Math.ceil(span / spacing), m = Math.floor(n * clamp(p));
+  ctx.beginPath(); for (let i = 0; i < m; i++) { const o = x0 - (y1 - y0) + i * spacing; ctx.moveTo(o, y1); ctx.lineTo(o + (y1 - y0) / Math.tan(ang), y0); }
+  ctx.lineWidth = lw(LW[weight]); ctx.strokeStyle = 'rgba(231,240,249,.75)'; ctx.stroke(); ctx.restore();
+}
+const TX = [];
+function letter(str, x, y, t0, t, o = {}) {
+  const { size = 34, font = 'Hand', weight = 400, dur = Math.max(.35, str.length * .03), id = str, check = true, color = 'rgba(231,240,249,.95)', align = 'left' } = o;
+  if (t < t0) return 0;
+  const p = seg(t, t0, t0 + dur);
+  ctx.save(); ctx.font = `${weight} ${size}px ${font}`; const m = ctx.measureText(str); const xx = align === 'center' ? x - m.width / 2 : x;
+  ctx.beginPath(); ctx.rect(xx - 4, y - size * 1.2, m.width * p + 4, size * 1.7); ctx.clip();
+  ctx.fillStyle = color; ctx.fillText(str, xx, y); ctx.restore();
+  if (p < 1) nib(xx + m.width * p, y - size * .3);
+  if (p >= 1 && check) { const a = w2s(xx, y - size * .85), b = w2s(xx + m.width, y + size * .25); TX.push({ id, text: str, x0: a[0], y0: a[1], x1: b[0], y1: b[1], pass: o.pass }); }
+  return m.width;
+}
+function balloon(n, x, y, tx, ty, t0, t, label) {
+  drawOn([[tx, ty], [x, y]], seg(t, t0, t0 + .25), 'thin');
+  if (t > t0 + .2) { const r = 24; drawOn(circ(x, y, r, 32), seg(t, t0 + .2, t0 + .45), 'det'); letter(String(n), x, y + 11, t0 + .35, t, { size: 30, align: 'center', id: 'b' + n + label, check: false }); }
+  if (label) letter(label, x + 36, y + 10, t0 + .45, t, { size: 28, id: 'lab' + label });
+}
+function dimH(x0, x1, y, txt, t0, t) { // horizontal dimension with arrows
+  const p = seg(t, t0, t0 + .5); if (p <= 0) return;
+  drawOn([[x0, y - 30], [x0, y + 12]], p, 'hair'); drawOn([[x1, y - 30], [x1, y + 12]], p, 'hair');
+  drawOn([[x0, y], [x1, y]], p, 'thin');
+  if (p >= 1) { arrow(x0, y, 0); arrow(x1, y, Math.PI); }
+  letter(txt, (x0 + x1) / 2, y - 14, t0 + .4, t, { size: 28, align: 'center', id: 'd' + txt });
+}
+function arrow(x, y, a) { const l = 16, w = 6; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * l - Math.sin(a) * w, y + Math.sin(a) * l + Math.cos(a) * w); ctx.lineTo(x + Math.cos(a) * l + Math.sin(a) * w, y + Math.sin(a) * l - Math.cos(a) * w); ctx.closePath(); ctx.fillStyle = LINE; ctx.fill(); }
+
+// ---------- gears ----------
+function gear(cx, cy, r, n, ang) {
+  const pts = [], add = r * .1, ded = r * .1;
+  for (let i = 0; i < n; i++) {
+    const a0 = ang + i / n * Math.PI * 2, s = Math.PI * 2 / n;
+    for (const [f, rr] of [[0, r - ded], [.18, r - ded], [.3, r + add], [.55, r + add], [.67, r - ded], [1, r - ded]]) pts.push([cx + Math.cos(a0 + f * s) * rr, cy + Math.sin(a0 + f * s) * rr]);
+  }
+  pts.push(pts[0]); return pts;
+}
+// escapement-like stepping: advance one unit per 8th, short ease-out
+function steps(t, t0, t1) { if (t <= t0) return 0; const T = Math.min(t, t1) - t0, k = Math.floor(T / E8), f = (T - k * E8) / E8; return k + (t < t1 ? eo(clamp(f / .45)) : 0); }
+
+// ---------- layout ----------
+const F1 = { x: 650, y: 1000 }, F2 = { x: 1400, y: 960 }, F3 = { x: 2100, y: 1000 }, F4 = { x: 2780, y: 1000 };
+const GA = { x: 2080, y: 1000, r: 150, n: 18 }, GB = { x: 2080 + 150 + 100, y: 1000, r: 100, n: 12 };
+const NOTES = [
+  { t: 3.6, txt: ['A ripe cherry holds two seeds:', 'the beans.'], sx: 1080, sy: 150 },
+  { t: 11.0, txt: ['Roast in a turning drum,', 'about 12 minutes at 200 °C.'], sx: 1100, sy: 70 },
+  { t: 17.5, txt: ['Two burrs crush the beans', 'just before brewing.'], sx: 1060, sy: 880 },
+  { t: 25.0, txt: ['About 70 beans', 'make one 250 ml cup.'], sx: 100, sy: 790 },
+];
+const NOTE_OUT = [7.5, 15.0, 21.5, 30.0];
+
+// ---------- frame ----------
+function render(t) {
+  TX.length = 0; K = cam(t); const s = PXU();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = TABLE; ctx.fillRect(0, 0, W, H);
+  // drafting cloth texture: faint
+  ctx.setTransform(s, 0, 0, s, W / 2 - K.x * s, H / 2 - K.y * s);
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(30, 40, SW, SH);   // drop shadow
+  ctx.imageSmoothingQuality = 'high'; ctx.drawImage(SHEETC, 0, 0, SW, SH);
+
+  // border, header
+  drawOn([[50, 50], [SW - 50, 50], [SW - 50, SH - 50], [50, SH - 50], [50, 50]], 1, 'out', null, .8);
+  drawOn([[70, 70], [SW - 70, 70], [SW - 70, SH - 70], [70, SH - 70], [70, 70]], 1, 'hair', null, .6);
+  letter('SPECIFICATION FOR ONE CUP OF COFFEE', 130, 170, 0.6, t, { size: 64, id: 'hdr', pass: true });
+  letter('SHEET 1 OF 1 · ALL DIMENSIONS APPROXIMATE', 130, 220, 1.4, t, { size: 26, check: false });
+
+  // the path of force: one centre line across the sheet
+  drawOn([[120, 1000], [3150, 1000]], seg(t, 0, 1.25), 'thin', 'center');
+
+  // --- Fig. 1: cherry, section A-A ---
+  if (t > 1.2 && K.x - 1100 / K.z < F1.x + 400) {
+    drawOn([[F1.x, 720], [F1.x, 1280]], seg(t, 1.25, 1.9), 'hair', 'center');
+    const skin = circ(F1.x, F1.y, 230), pulp = circ(F1.x, F1.y, 196);
+    paperFill(skin, seg(t, 2.7, 2.8) * .9);
+    drawOn(skin, seg(t, 1.9, 2.8), 'out'); drawOn(pulp, seg(t, 2.2, 3.0), 'det');
+    const beans = [-1, 1].map(sd => ell(F1.x + sd * 74, F1.y, 70, 128, sd * .06));
+    hatch(pulp, seg(t, 3.75, 4.4), 14);
+    beans.forEach((b, i) => { paperFill(b, seg(t, 3.2 + i * .2, 3.3 + i * .2)); drawOn(b, seg(t, 2.6 + i * .2, 3.3 + i * .2), 'out'); });
+    [-1, 1].forEach(sd => drawOn([[F1.x + sd * 30, F1.y - 100], [F1.x + sd * 46, F1.y - 40], [F1.x + sd * 32, F1.y + 30], [F1.x + sd * 46, F1.y + 100]], seg(t, 3.3, 3.75), 'det'));
+    dimH(F1.x - 230, F1.x + 230, F1.y + 300, 'Ø 15 mm', 4.4, t);
+    balloon(1, F1.x + 320, F1.y - 260, F1.x + 170, F1.y - 155, 5.0, t, 'SKIN');
+    balloon(2, F1.x + 360, F1.y - 150, F1.x + 180, F1.y - 60, 5.2, t, 'PULP');
+    balloon(3, F1.x + 360, F1.y + 160, F1.x + 110, F1.y + 70, 5.4, t, 'BEAN ×2');
+    letter('FIG. 1 — CHERRY, SECTION A-A', F1.x - 230, F1.y + 400, 4.0, t, { size: 34, id: 'fig1' });
+  }
+  // --- the bean outline travels the centre line between figures ---
+  const legs = [[7.5, 8.75, F1.x + 240, F2.x - 240], [15.0, 16.25, F2.x + 340, F3.x - 170], [21.6, 22.6, GB.x + 120, F4.x - 220]];
+  legs.forEach(([a, b, x0, x1]) => { if (t > a - .1 && t < b + .3) { const u = eio(seg(t, a, b)), x = lerp(x0, x1, u); paperFill(ell(x, 1000, 22, 15, 0, 24)); drawOn(ell(x, 1000, 22, 15, 0, 24), 1, 'det'); drawOn([[x - 14, 1000], [x + 14, 1000]], 1, 'hair'); } });
+
+  // --- Fig. 2: drum roaster ---
+  if (t > 8.5 && Math.abs(K.x - F2.x) < 1300 / K.z + 400) {
+    const D = { x: F2.x, y: F2.y, r: 220 };
+    const drum = circ(D.x, D.y, D.r);
+    paperFill(drum, seg(t, 9.6, 9.7));
+    drawOn([[D.x - 280, D.y], [D.x + 280, D.y]], seg(t, 8.75, 9.1), 'hair', 'center');
+    drawOn(drum, seg(t, 8.9, 9.7), 'out'); drawOn(circ(D.x, D.y, D.r - 18), seg(t, 9.1, 9.8), 'thin');
+    const rot = steps(t, 10.6, 14.4) * Math.PI / 6;           // one vane per 8th
+    for (let v = 0; v < 3; v++) { const a = rot + v * Math.PI / 3; drawOn([[D.x - Math.cos(a) * (D.r - 22), D.y - Math.sin(a) * (D.r - 22)], [D.x + Math.cos(a) * (D.r - 22), D.y + Math.sin(a) * (D.r - 22)]], seg(t, 9.6 + v * .15, 10.0 + v * .15), 'det'); }
+    drawOn(circ(D.x, D.y, 16, 20), seg(t, 9.9, 10.1), 'det');
+    // beans tumbling with the drum
+    if (t > 10.0) for (let b = 0; b < 9; b++) { const a = rot * .85 + b * .45 + 1.2, rr = D.r - 50 - (b % 3) * 28; const bx = D.x + Math.cos(a) * rr * .9, by = D.y + Math.abs(Math.sin(a)) * rr * .55 + 40; const e = ell(bx, by, 16, 11, a, 16); paperFill(e); drawOn(e, seg(t, 10.0 + b * .05, 10.3 + b * .05), 'thin'); }
+    // hopper
+    const hop = [[D.x - 90, D.y - 380], [D.x + 90, D.y - 380], [D.x + 30, D.y - 230], [D.x - 30, D.y - 230], [D.x - 90, D.y - 380]];
+    drawOn(hop, seg(t, 9.4, 10.0), 'det');
+    // burner: a row of flames (hatch) under the drum, flickering on beats
+    for (let f = 0; f < 6; f++) { const fx = D.x - 150 + f * 60, fl = 30 + 16 * Math.abs(Math.sin(f * 1.7 + Math.floor(t / E8) * 2.1)) * (t > 10.6 ? 1 : 0); drawOn([[fx - 16, D.y + 300], [fx, D.y + 300 - fl], [fx + 16, D.y + 300]], seg(t, 9.8 + f * .05, 10.2 + f * .05), 'thin'); }
+    drawOn([[D.x - 190, D.y + 304], [D.x + 190, D.y + 304]], seg(t, 9.8, 10.2), 'det');
+    // gauge
+    const G = { x: D.x + 390, y: D.y + 170, r: 95 };
+    drawOn(circ(G.x, G.y, G.r), seg(t, 9.8, 10.4), 'det');
+    drawOn([[G.x - 92, G.y - 20], [D.x + 205, D.y + 80]], seg(t, 10.0, 10.3), 'thin');
+    for (let k = 0; k <= 10; k++) { const a = Math.PI * .75 + k / 10 * Math.PI * 1.5, r0 = k % 5 ? 78 : 68; drawOn([[G.x + Math.cos(a) * r0, G.y + Math.sin(a) * r0], [G.x + Math.cos(a) * 88, G.y + Math.sin(a) * 88]], seg(t, 10.2 + k * .02, 10.4 + k * .02), 'hair'); }
+    // needle: climbs 0 → 200 with a back-ease overshoot (joy)
+    const val = 200 * back(seg(t, 11.25, 13.75), 1.4);
+    const na = Math.PI * .75 + clamp(val / 250, 0, 1.08) * Math.PI * 1.5;
+    if (t > 10.4) drawOn([[G.x, G.y], [G.x + Math.cos(na) * 76, G.y + Math.sin(na) * 76]], 1, 'det');
+    letter('0', G.x - 74, G.y + 92, 10.5, t, { size: 22, check: false }); letter('250', G.x + 50, G.y + 92, 10.5, t, { size: 22, check: false });
+    if (t > 11.0 && t < 15.6) { ctx.font = '400 34px Hand'; ctx.fillStyle = LINE; ctx.fillText(`T = ${Math.round(Math.max(0, val))} °C`, G.x + 120, G.y + 10); }
+    balloon(4, D.x - 330, D.y - 280, D.x - 150, D.y - 160, 10.6, t, 'DRUM');
+    letter('FIG. 2 — DRUM ROASTER', D.x - 220, D.y + 420, 10.9, t, { size: 34, id: 'fig2' });
+  }
+
+  // --- Fig. 3: burr grinder (two meshing gears) ---
+  if (t > 15.4 && Math.abs(K.x - F3.x) < 1300 / K.z + 400) {
+    const k = steps(t, 17.6, 21.5);   // one tooth per 8th
+    const aA = k * Math.PI * 2 / GA.n, aB = -k * Math.PI * 2 / GB.n + Math.PI / GB.n + Math.PI;   // teeth interlock
+    const ga = gear(GA.x, GA.y, GA.r, GA.n, aA), gb = gear(GB.x, GB.y, GB.r, GB.n, aB);
+    paperFill(ga, seg(t, 16.5, 16.6)); drawOn(ga, seg(t, 15.6, 16.6), 'out');
+    paperFill(gb, seg(t, 16.8, 16.9)); drawOn(gb, seg(t, 16.0, 16.9), 'out');
+    [GA, GB].forEach((g, i) => { drawOn(circ(g.x, g.y, g.r * .3, 32), seg(t, 16.6 + i * .2, 16.9 + i * .2), 'det'); drawOn(circ(g.x, g.y, 10, 12), seg(t, 16.8, 17.0), 'det');
+      const a = i ? aB : aA; for (let sp = 0; sp < 4; sp++) { const b = a + sp * Math.PI / 2; drawOn([[g.x + Math.cos(b) * g.r * .3, g.y + Math.sin(b) * g.r * .3], [g.x + Math.cos(b) * g.r * .78, g.y + Math.sin(b) * g.r * .78]], seg(t, 16.8, 17.2), 'thin'); } });
+    // hopper with beans above the mesh, grounds falling below it
+    const mx = GA.x + GA.r + 4;
+    drawOn([[mx - 120, 640], [mx + 120, 640], [mx + 26, 830], [mx - 26, 830], [mx - 120, 640]], seg(t, 16.4, 17.0), 'det');
+    if (t > 17.0) for (let b = 0; b < 6; b++) { const e = ell(mx - 60 + b * 24, 700 + (b % 2) * 26, 13, 9, b, 14); paperFill(e); drawOn(e, 1, 'thin'); }
+    if (t > 17.7 && t < 21.6) { const r = mulberry(Math.floor(t / E8) + 9); ctx.fillStyle = LINE; for (let g = 0; g < 60; g++) { const gx = mx + (r() - .5) * 70, gy = 1080 + ((r() * 300 + (t * 300)) % 300); ctx.fillRect(gx, gy, 3, 3); } }
+    drawOn([[mx - 120, 1420], [mx + 120, 1420], [mx + 100, 1480], [mx - 100, 1480], [mx - 120, 1420]], seg(t, 16.8, 17.3), 'det');
+    balloon(5, GA.x - 130, GA.y - 190, GA.x - 60, GA.y - 100, 17.7, t, 'BURR');
+    letter('FIG. 3 — BURR GRINDER', GA.x - 160, GA.y + 360, 17.1, t, { size: 34, id: 'fig3', pass: true });
+  }
+
+  // --- Fig. 4: the cup, with a section line sweeping across ---
+  if (t > 21.5) {
+    const C = F4;
+    const outer = [[C.x - 170, C.y - 190], [C.x - 140, C.y + 150], [C.x + 140, C.y + 150], [C.x + 170, C.y - 190]];
+    const inner = [[C.x - 152, C.y - 190], [C.x - 124, C.y + 134], [C.x + 124, C.y + 134], [C.x + 152, C.y - 190]];
+    paperFill([...outer, outer[0]], seg(t, 22.8, 22.9));
+    drawOn(outer, seg(t, 22.0, 22.9), 'out'); drawOn(inner, seg(t, 22.4, 23.2), 'det');
+    drawOn([[C.x + 162, C.y - 120], [C.x + 250, C.y - 110], [C.x + 260, C.y - 20], [C.x + 150, C.y + 40]], seg(t, 23.0, 23.6), 'out');
+    drawOn([[C.x - 300, C.y + 168], [C.x + 300, C.y + 168]], seg(t, 23.4, 23.9), 'out');
+    drawOn([[C.x - 260, C.y + 190], [C.x + 260, C.y + 190]], seg(t, 23.5, 24.0), 'thin');
+    // section line sweeps; liquid hatch revealed behind it up to the fill level
+    const sw = seg(t, 24.4, 26.25), lvl = C.y - 150;
+    if (sw > 0) {
+      const sx = lerp(C.x - 220, C.x + 220, eio(sw));
+      ctx.save(); ctx.beginPath(); ctx.rect(C.x - 220, lvl, sx - (C.x - 220), 300); ctx.clip();
+      hatch([[C.x - 147, lvl], [C.x - 124, C.y + 134], [C.x + 124, C.y + 134], [C.x + 147, lvl]], 1, 11, Math.PI / 4);
+      drawOn([[C.x - 147, lvl], [C.x + 147, lvl]], 1, 'det');
+      ctx.restore();
+      if (sw < 1) drawOn([[sx, C.y - 300], [sx, C.y + 260]], 1, 'det', 'phantom');
+    }
+    // steam as hidden lines
+    if (t > 26.4) for (let i = 0; i < 3; i++) { const pts = []; for (let j = 0; j <= 12; j++) { const v = j / 12; pts.push([C.x - 60 + i * 60 + Math.sin(v * 6 + i + t * 1.5) * 14, C.y - 230 - v * 200]); } drawOn(pts, seg(t, 26.4 + i * .2, 27.4 + i * .2), 'thin', 'hidden'); }
+    dimH(C.x - 152, C.x + 152, C.y - 250 - 0, '250 ml', 25.6, t);
+    balloon(6, C.x + 200, C.y + 270, C.x + 80, C.y + 100, 26.0, t, '≈ 70 BEANS');
+    letter('FIG. 4 — ONE CUP', C.x - 170, C.y + 330, 26.4, t, { size: 34, id: 'fig4' });
+  }
+
+  // --- general notes column + title block ---
+  const NX = 3260;
+  if (K.x + 1100 / K.z > NX) {
+    drawOn([[NX - 30, 120], [NX - 30, 1640]], 1, 'thin', null, .7);
+    letter('GENERAL NOTES', NX, 190, 0, t, { size: 34, pass: true, id: 'gn' });
+    NOTES.forEach((n, i) => n.txt.forEach((l, j) => letter((j ? '    ' : `${i + 1}. `) + l, NX, 260 + i * 120 + j * 40, n.t + .4 + j * .3, t, { size: 26, pass: true, id: `gn${i}${j}` })));
+    // title block
+    const TB = { x0: 2880, y0: 1680, x1: 3730, y1: 1930 };
+    drawOn([[TB.x0, TB.y0], [TB.x1, TB.y0], [TB.x1, TB.y1], [TB.x0, TB.y1], [TB.x0, TB.y0]], 1, 'det');
+    [[TB.x0, 1760, TB.x1, 1760], [TB.x0, 1840, TB.x1, 1840], [3300, 1760, 3300, 1930]].forEach(l => drawOn([[l[0], l[1]], [l[2], l[3]]], 1, 'thin'));
+    const f = (s2, x, y, t0, sz = 26, w = 400, id) => letter(s2, x, y, t0, t, { font: 'B612', size: sz, weight: w, dur: .4, id: id || s2, pass: true });
+    f('TITLE', TB.x0 + 16, 1700, 0, 16); f('FROM CHERRY TO CUP', TB.x0 + 16, 1742, 31.3, 34, 700, 'tbt');
+    f('DWG NO.', TB.x0 + 16, 1780, 0, 16); f('CF-001', TB.x0 + 16, 1822, 31.6, 28);
+    f('SCALE', TB.x0 + 16, 1860, 0, 16); f('NTS · REV A', TB.x0 + 16, 1902, 31.8, 28);
+    f('STATUS', 3316, 1780, 0, 16);
+  }
+  // stamp: the only non-blue colour, used once
+  if (t > 32.5) {
+    const p = seg(t, 32.5, 32.62), sc = lerp(1.35, 1, eo(p));
+    ctx.save(); ctx.translate(3510, 1862); ctx.rotate(-.08); ctx.scale(sc, sc); ctx.globalAlpha = p;
+    ctx.strokeStyle = STAMP; ctx.lineWidth = 7; ctx.strokeRect(-190, -52, 380, 104); ctx.lineWidth = 2.5; ctx.strokeRect(-178, -40, 356, 80);
+    ctx.font = '700 62px B612'; ctx.fillStyle = STAMP; ctx.textAlign = 'center'; ctx.fillText('BREWED', 0, 22);
+    // ink breakup: specks of paper showing through
+    const r = mulberry(4); ctx.fillStyle = 'rgba(31,68,136,.55)'; for (let k = 0; k < 140; k++) ctx.fillRect((r() - .5) * 380, (r() - .5) * 104, r() * 5 + 1, r() * 3 + 1);
+    ctx.restore();
+    if (p >= 1) { const a = w2s(3320, 1800), b = w2s(3700, 1925); TX.push({ id: 'stamp', text: 'BREWED', x0: a[0], y0: a[1], x1: b[0], y1: b[1] }); }
+  }
+  // the coffee ring: a wet bloom on the title block, tide line = the last circle of the design
+  if (t > 34.4) {
+    const p = eo(seg(t, 34.4, 35.6)), cx = 3080, cy = 1800, R = 150 * lerp(.85, 1, p);
+    ctx.save(); ctx.globalAlpha = p;
+    const g = ctx.createRadialGradient(cx, cy, R * .2, cx, cy, R); g.addColorStop(0, 'rgba(14,36,90,.25)'); g.addColorStop(.85, 'rgba(14,36,90,.38)'); g.addColorStop(.96, 'rgba(8,22,62,.8)'); g.addColorStop(1, 'rgba(10,26,70,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(210,228,250,.75)'; ctx.lineWidth = 4; ctx.beginPath();
+    for (let i = 0; i <= 90; i++) { const a = i / 90 * Math.PI * 2, rr = R * (1.01 + .015 * Math.sin(a * 7) + .01 * Math.sin(a * 13)); ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---------- drawing notes (overlay, placed per shot in empty sky) ----------
+  ctx.setTransform(W / 1920, 0, 0, W / 1920, 0, 0);
+  const saveK = K; K = { x: 960, y: 540, z: 1 };
+  NOTES.forEach((n, i) => {
+    if (t < n.t || t > NOTE_OUT[i]) return;
+    const a = seg(t, n.t, n.t + .25) * (1 - seg(t, NOTE_OUT[i] - .2, NOTE_OUT[i]));
+    const bw = 820, bh = 150, x = n.sx, y = n.sy;
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(200,225,255,.12)'; ctx.fillRect(x, y, bw, bh);
+    ctx.strokeStyle = 'rgba(231,240,249,.9)'; ctx.lineWidth = 2; ctx.strokeRect(x, y, bw, bh); ctx.lineWidth = 1; ctx.strokeRect(x + 7, y + 7, bw - 14, bh - 14);
+    ctx.beginPath(); ctx.moveTo(x + 130, y + 7); ctx.lineTo(x + 130, y + bh - 7); ctx.stroke();
+    ctx.font = '400 22px B612'; ctx.fillStyle = LINE; ctx.fillText('NOTE', x + 34, y + 66); ctx.font = '700 40px B612'; ctx.fillText(`/ ${i + 1}`, x + 32, y + 112);
+    ctx.restore();
+    if (a > .99) n.txt.forEach((l, j) => letter(l, x + 160, y + 64 + j * 52, n.t + .1 + j * .3, t, { size: 38, dur: .35, id: `note${i}${j}` }));
+  });
+  K = saveK;
+}
+
+// ---------- events ----------
+const EV = [];
+const pen = (t, d = .4, v = 1) => EV.push({ t, type: 'pen', d, v });
+pen(0, 1.25, 1.2); pen(.6, .9); pen(1.25, .6); EV.push({ t: 1.9, type: 'compass', d: .9 }); EV.push({ t: 2.2, type: 'compass', d: .8 }); pen(2.6, .7); pen(2.8, .7); pen(3.3, .45);
+EV.push({ t: 3.75, type: 'hatch', d: .65 }); pen(4.4, .5); [5.0, 5.2, 5.4].forEach(x => pen(x, .4)); 
+NOTES.forEach(n => EV.push({ t: n.t + .1, type: 'letter', d: .7 }));
+[[7.5, 8.75], [15.0, 16.25], [21.6, 22.6]].forEach(([a, b]) => EV.push({ t: a, type: 'travel', d: b - a }));
+EV.push({ t: 8.9, type: 'compass', d: .8 }); pen(9.4, .6); pen(9.6, .6); pen(9.8, .6); EV.push({ t: 9.8, type: 'compass', d: .6 }); pen(10.6, .5); pen(10.9, .6);
+for (let t = 10.6 + E8; t < 14.4; t += E8) EV.push({ t, type: 'tick' });
+EV.push({ t: 10.6, type: 'burner', d: 4.0 }); EV.push({ t: 11.25, type: 'needle', d: 2.5 }); EV.push({ t: 4.0, type: 'pen', d: .7 }); EV.push({ t: 13.0, type: 'ding' });
+pen(15.6, 1.0); pen(16.0, .9); pen(16.4, .6); pen(16.9, .5); pen(17.1, .6);
+EV.push({ t: 17.5, type: 'cut' }); EV.push({ t: 21.5, type: 'cut' });
+for (let t = 17.6 + E8; t < 21.5; t += E8) EV.push({ t, type: 'gear' });
+EV.push({ t: 17.7, type: 'grounds', d: 3.8 });
+pen(22.0, .9); pen(22.4, .8); pen(23.0, .6); pen(23.4, .5); EV.push({ t: 24.4, type: 'section', d: 1.85 }); EV.push({ t: 24.6, type: 'trickle', d: 1.8 }); pen(25.6, .5); pen(26.0, .5); pen(26.4, .6);
+EV.push({ t: 30.0, type: 'slap' }); pen(31.3, .4); pen(31.6, .3); pen(31.8, .3);
+EV.push({ t: 32.5, type: 'stamp' }); EV.push({ t: 34.4, type: 'ring' });
+EV.sort((a, b) => a.t - b.t);
+
+window.DUR = DUR; window.EV = EV; window.render = render;
+window.TEXTS = t => { render(t); return TX.map(o => ({ ...o })); };
+(async () => {
+  await Promise.all(['400 30px Hand', '400 20px B612', '700 20px B612'].map(f => document.fonts.load(f)));
+  makeSheet(); render(0); window.READY = true;
+})();
+</script></body></html>
