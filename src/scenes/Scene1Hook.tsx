@@ -1,3 +1,4 @@
+import {useContent} from '../content';
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {Camera, Glass, Layer} from '../components/Stage';
@@ -34,6 +35,7 @@ const LINKS: [number, number][] = [
 
 export const Scene1Hook: React.FC = () => {
   const f = useCurrentFrame();
+  const t = useContent().s1;
 
   // Elegant camera push-in across the scene.
   const camZ = keys(f, [0, 158], [-60, 170], EASE_IO);
@@ -181,9 +183,9 @@ export const Scene1Hook: React.FC = () => {
             background: `radial-gradient(closest-side, rgba(17,19,24,${0.75 * prog(f, 44, 20)}), transparent)`,
           }}
         >
-          <MaskedText text="COMPLEXITY" delay={48} size={88} weight={600} tracking="0.05em" />
+          <MaskedText text={t.left} delay={48} size={88} weight={600} tracking="0.05em" />
           <Arrow delay={62} />
-          <MaskedText text="OPPORTUNITY" delay={IMPACT - 4} size={88} weight={700} tracking="0.05em" gradient />
+          <MaskedText text={t.right} delay={IMPACT - 4} size={88} weight={700} tracking="0.05em" gradient />
         </div>
       </AbsoluteFill>
     </AbsoluteFill>

@@ -1,3 +1,4 @@
+import {useContent} from '../content';
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {Camera, Glass, Layer} from '../components/Stage';
@@ -27,6 +28,7 @@ const GY = 270;
 
 export const Scene8Outro: React.FC = () => {
   const f = useCurrentFrame();
+  const t = useContent().s8;
 
   // 1) pull back to reveal the ecosystem
   const camS = keys(f, [0, 30], [1.25, 0.92], EASE_IO);
@@ -120,7 +122,7 @@ export const Scene8Outro: React.FC = () => {
         <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center'}}>
           <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', transform: `scale(${settle})`}}>
             <div style={{position: 'relative', opacity: logoP, transform: `translateY(${(1 - logoP) * 18}px)`}}>
-              <Logo />
+              <Logo src={t.logo} />
               {/* light sweep */}
               <div
                 style={{
@@ -134,10 +136,10 @@ export const Scene8Outro: React.FC = () => {
             </div>
             <Underline delay={84} width={280} height={5} style={{marginTop: 34}} />
             <div style={{marginTop: 30}}>
-              <MaskedText text="CREATING ABUNDANCE" delay={92} size={30} weight={600} tracking="0.32em" color={C.graphite} stagger={3} />
+              <MaskedText text={t.tagline} delay={92} size={30} weight={600} tracking="0.32em" color={C.graphite} stagger={3} />
             </div>
             <div style={{marginTop: 34}}>
-              <MaskedText text="Let's Build What's Next." delay={102} size={44} weight={600} tracking="0.01em" color={C.graphite} stagger={3} />
+              <MaskedText text={t.cta} delay={102} size={44} weight={600} tracking="0.01em" color={C.graphite} stagger={3} />
             </div>
             <div
               style={{
@@ -151,7 +153,7 @@ export const Scene8Outro: React.FC = () => {
                 color: C.orange,
               }}
             >
-              intimetec.com
+              {t.url}
             </div>
           </div>
         </AbsoluteFill>

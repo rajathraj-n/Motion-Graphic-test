@@ -22,10 +22,12 @@ npm run studio          # live preview / scrub timeline in the browser
 npm run render:preview  # 1920×1080 H.264 → out/intimetec-promo-1080p.mp4
 npm run render:4k       # 3840×2160 H.264 → out/intimetec-promo-4k.mp4
 npm run render:prores   # 3840×2160 ProRes 422 HQ master → out/intimetec-promo-4k.mov
-npm run build:player    # single-file browser player → out/player.html (open it directly, no server)
+npm run build:player    # single-file browser editor + player → out/player.html (open it directly, no server)
 ```
 
 `npm run studio` opens Remotion Studio at http://localhost:3000: a timeline with scrubbing, per-scene sequences and hot reload. Edit any file in `src/` and the preview updates instantly.
+
+All on-screen copy lives in **`src/content.ts`**. You can also change it in Studio's props panel, or in the browser editor (`out/player.html`), whose **Copy for code** button produces a block to paste back into `src/content.ts`.
 
 Requirements: Node 18+. Remotion downloads its own headless Chrome on first run, and the fonts are self-hosted, so rendering needs no network.
 

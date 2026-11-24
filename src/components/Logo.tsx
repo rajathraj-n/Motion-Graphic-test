@@ -10,9 +10,11 @@ import {C, FONT} from '../theme';
  * - Without it, a plainly-typeset PLACEHOLDER wordmark is shown so layout and timing can be
  *   approved. It is NOT the In Time Tec logo and must be replaced before release.
  */
-export const Logo: React.FC<{height?: number}> = ({height = config.logoHeight}) => {
-  if (config.logoFile) {
-    return <Img src={staticFile(config.logoFile)} style={{height, width: 'auto', display: 'block'}} />;
+export const Logo: React.FC<{height?: number; src?: string | null}> = ({height = config.logoHeight, src}) => {
+  const file = src ?? config.logoFile;
+  if (file) {
+    const url = /^(data:|blob:|https?:)/.test(file) ? file : staticFile(file);
+    return <Img src={url} style={{height, width: 'auto', display: 'block'}} />;
   }
   return (
     <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10}}>

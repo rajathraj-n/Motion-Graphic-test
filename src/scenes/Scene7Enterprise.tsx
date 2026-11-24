@@ -1,3 +1,4 @@
+import {useContent} from '../content';
 import React from 'react';
 import {AbsoluteFill, random, useCurrentFrame} from 'remotion';
 import {Camera, Glass, Layer} from '../components/Stage';
@@ -69,7 +70,7 @@ const SecurePanel: React.FC<{d: number}> = ({d}) => {
         <div style={{position: 'absolute', width: 130, height: 130, borderRadius: '50%', background: 'radial-gradient(circle, rgba(240,96,35,0.25), transparent 70%)', opacity: draw}} />
         <Icon name="shield" size={96} color="#FF8A52" stroke={1.3} draw={draw} />
       </div>
-      <PanelTitle word="SECURE" sub="Security built into every layer" />
+      <PanelTitle word={useContent().s7.word1} sub="Security built into every layer" />
       <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
         <CheckRow text="Identity & access control" at={d + 22} />
         <CheckRow text="Encryption in transit & at rest" at={d + 28} />
@@ -130,7 +131,7 @@ const ScalablePanel: React.FC<{d: number}> = ({d}) => {
           <Icon name="cloud" size={48} color="#fff" stroke={1.5} />
         </div>
       </div>
-      <PanelTitle word="SCALABLE" sub="Cloud architecture that grows with you" />
+      <PanelTitle word={useContent().s7.word2} sub="Cloud architecture that grows with you" />
       <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
         <CheckRow text="Cloud-native services" at={d + 22} />
         <CheckRow text="Elastic, auto-scaling capacity" at={d + 28} />
@@ -150,7 +151,7 @@ const ResultsPanel: React.FC<{d: number}> = ({d}) => (
         <LineChart data={[10, 14, 12, 18, 17, 24, 23, 30, 34]} w={230} h={150} delay={d + 8} dur={40} color={C.yellow} grid={false} />
       </div>
     </div>
-    <PanelTitle word="RESULTS-DRIVEN" sub="Outcomes measured against your goals" />
+    <PanelTitle word={useContent().s7.word3} sub="Outcomes measured against your goals" />
     <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
       <CheckRow text="Clear success metrics" at={d + 22} />
       <CheckRow text="Performance visibility" at={d + 28} />
@@ -161,6 +162,7 @@ const ResultsPanel: React.FC<{d: number}> = ({d}) => (
 
 export const Scene7Enterprise: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useContent().s7;
   // Beat-synced camera: focus each panel, then pull back to the unified grid.
   const t = [0, LAND[0] + 12, LAND[1] - 4, LAND[1] + 12, LAND[2] - 4, LAND[2] + 14, 140, 196];
   const camX = keys(f, t, [650, 660, 0, 0, -660, -660, 0, 0]);
@@ -176,7 +178,7 @@ export const Scene7Enterprise: React.FC = () => {
     return [960 + Math.cos(a) * r * 1.3, 560 + Math.sin(a) * r * 0.7] as [number, number];
   });
 
-  const words = ['SECURE.', 'SCALABLE.', 'RESULTS-DRIVEN.'];
+  const words = [copy.word1, copy.word2, copy.word3].map((w) => `${w}.`);
 
   return (
     <AbsoluteFill>
@@ -216,7 +218,7 @@ export const Scene7Enterprise: React.FC = () => {
         {words.map((w, i) => {
           const p = prog(f, LAND[i] - 2, 18);
           return (
-            <div key={w} style={{overflow: 'hidden', padding: '4px 2px 10px'}}>
+            <div key={i} style={{overflow: 'hidden', padding: '4px 2px 10px'}}>
               <div
                 style={{
                   transform: `translateY(${(1 - p) * 110}%)`,

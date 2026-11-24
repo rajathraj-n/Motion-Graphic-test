@@ -1,3 +1,4 @@
+import {useContent} from '../content';
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {Camera, Glass, Layer} from '../components/Stage';
@@ -195,6 +196,7 @@ export const MainDashboard: React.FC<{d: number}> = ({d}) => {
 
 export const Scene3Solution: React.FC = () => {
   const f = useCurrentFrame();
+  const t = useContent().s3;
   const D = 196;
 
   // Camera orbit (< 8°) and gentle scale.
@@ -261,8 +263,8 @@ export const Scene3Solution: React.FC = () => {
       />
 
       <div style={{position: 'absolute', left: 0, right: 0, top: 58, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14}}>
-        <Kicker text="IN TIME TEC" delay={44} />
-        <MaskedText text="CONNECTED BY DESIGN" delay={50} size={66} weight={600} tracking="0.06em" />
+        <Kicker text={t.kicker} delay={44} />
+        <MaskedText text={t.headline} delay={50} size={66} weight={600} tracking="0.06em" />
         <Underline delay={66} width={220} />
       </div>
     </AbsoluteFill>

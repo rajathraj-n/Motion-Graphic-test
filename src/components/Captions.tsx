@@ -1,16 +1,20 @@
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {config} from '../config';
+import {useContent} from '../content';
 import {VO} from '../timeline';
 import {FONT, FPS, tween} from '../theme';
 
 /** Optional burned-in VO subtitles (config.showCaptions). */
 export const Captions: React.FC = () => {
   const f = useCurrentFrame();
-  if (!config.showCaptions) return null;
+  const content = useContent();
+  if (!config.showCaptions && !content.showCaptions) return null;
   const t = f / FPS;
-  const line = VO.find((l) => t >= l.start && t <= l.end + 0.2);
-  if (!line) return null;
+  const idx = VO.findIndex((l) => t >= l.start && t <= l.end + 0.2);
+  if (idx < 0) return null;
+  const line = VO[idx];
+  const text = content.vo[idx] ?? line.text;
   const o = Math.min(tween(t, [line.start, line.start + 0.2], [0, 1]), tween(t, [line.end, line.end + 0.2], [1, 0]));
   const onWhite = t > 45.5;
   return (
@@ -29,7 +33,7 @@ export const Captions: React.FC = () => {
           textAlign: 'center',
         }}
       >
-        {line.text}
+        {text}
       </div>
     </AbsoluteFill>
   );

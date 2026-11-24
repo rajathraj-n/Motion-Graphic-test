@@ -6,6 +6,7 @@ import {AudioTracks} from './components/AudioTracks';
 import {Captions} from './components/Captions';
 import {OVERLAP, SCENES, SceneId} from './timeline';
 import {FPS} from './theme';
+import {Content, ContentContext, defaultContent} from './content';
 import {Scene1Hook} from './scenes/Scene1Hook';
 import {Scene2Challenge} from './scenes/Scene2Challenge';
 import {Scene3Solution} from './scenes/Scene3Solution';
@@ -26,7 +27,8 @@ const REGISTRY: Record<SceneId, React.FC> = {
   s8: Scene8Outro,
 };
 
-export const Video: React.FC = () => (
+export const Video: React.FC<{content?: Content}> = ({content = defaultContent}) => (
+  <ContentContext.Provider value={content}>
   <AbsoluteFill style={{backgroundColor: '#111318'}}>
     <Background />
     {SCENES.map((s, i) => {
@@ -46,4 +48,5 @@ export const Video: React.FC = () => (
     <Captions />
     <AudioTracks />
   </AbsoluteFill>
+  </ContentContext.Provider>
 );

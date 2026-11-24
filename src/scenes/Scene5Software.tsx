@@ -1,3 +1,4 @@
+import {useContent} from '../content';
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {Camera, Layer} from '../components/Stage';
@@ -368,6 +369,7 @@ const TaskScreen: React.FC = () => {
 
 export const Scene5Software: React.FC = () => {
   const f = useCurrentFrame();
+  const t = useContent().s5;
   // Camera tracks between the three screens with holds.
   const camX = keys(f, [0, 62, 86, 128, 152], [0, 0, -SPACING, -SPACING, -SPACING * 2]);
   // velocity-based swing & breathing pull-back during moves
@@ -411,8 +413,8 @@ export const Scene5Software: React.FC = () => {
       </Camera>
 
       <div style={{position: 'absolute', left: 0, right: 0, top: 62, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12}}>
-        <MaskedText text="CUSTOM SOFTWARE" delay={10} size={64} weight={700} tracking="0.06em" />
-        <Kicker text="INTUITIVE EXPERIENCES" delay={22} />
+        <MaskedText text={t.headline} delay={10} size={64} weight={700} tracking="0.06em" />
+        <Kicker text={t.sub} delay={22} />
       </div>
     </AbsoluteFill>
   );

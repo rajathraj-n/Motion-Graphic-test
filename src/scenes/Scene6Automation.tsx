@@ -1,3 +1,4 @@
+import {useContent} from '../content';
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {Camera, Glass, Layer} from '../components/Stage';
@@ -85,6 +86,7 @@ const ActivityFeed: React.FC<{delay: number}> = ({delay}) => {
 
 export const Scene6Automation: React.FC = () => {
   const f = useCurrentFrame();
+  const t = useContent().s6;
   const D = 226;
   const rx = keys(f, [0, D], [12, 4]);
   const sc = keys(f, [0, D], [0.94, 1]);
@@ -203,8 +205,8 @@ export const Scene6Automation: React.FC = () => {
       </Camera>
 
       <div style={{position: 'absolute', left: 0, right: 0, top: 58, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12}}>
-        <Kicker text="DATA  •  AUTOMATION  •  VISIBILITY" delay={4} />
-        <MaskedText text="FROM DATA TO ACTION" delay={8} size={64} weight={700} tracking="0.06em" />
+        <Kicker text={t.kicker} delay={4} />
+        <MaskedText text={t.headline} delay={8} size={64} weight={700} tracking="0.06em" />
       </div>
     </AbsoluteFill>
   );

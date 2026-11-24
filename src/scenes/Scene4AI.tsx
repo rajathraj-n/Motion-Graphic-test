@@ -1,3 +1,4 @@
+import {useContent} from '../content';
 import React, {useMemo} from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {getPointAtLength, getLength} from '@remotion/paths';
@@ -146,6 +147,7 @@ const InsightChart: React.FC<{w: number; h: number; delay: number}> = ({w, h, de
 
 export const Scene4AI: React.FC = () => {
   const f = useCurrentFrame();
+  const t = useContent().s4;
   const D = 226;
   const ry = keys(f, [0, D], [-14, -6]);
   const rx = keys(f, [0, D], [6, 2]);
@@ -296,9 +298,9 @@ export const Scene4AI: React.FC = () => {
 
       {/* left column copy */}
       <div style={{position: 'absolute', left: 120, top: 330, display: 'flex', flexDirection: 'column', gap: 18}}>
-        <Kicker text="CUSTOM AI" delay={14} />
-        <MaskedText text="AI-POWERED" delay={20} size={70} weight={700} tracking="0.03em" />
-        <MaskedText text="INTELLIGENCE" delay={26} size={70} weight={700} tracking="0.03em" gradient />
+        <Kicker text={t.kicker} delay={14} />
+        <MaskedText text={t.line1} delay={20} size={70} weight={700} tracking="0.03em" />
+        <MaskedText text={t.line2} delay={26} size={70} weight={700} tracking="0.03em" gradient />
         <Underline delay={40} width={180} />
         <div
           style={{
@@ -309,9 +311,9 @@ export const Scene4AI: React.FC = () => {
             transform: `translateY(${(1 - prog(f, 48, 24, EASE)) * 14}px)`,
           }}
         >
-          From information overload
+          {t.sub1}
           <br />
-          to <span style={{color: '#fff', fontWeight: 600}}>intelligent action.</span>
+          <span style={{color: '#fff', fontWeight: 600}}>{t.sub2}</span>
         </div>
       </div>
 

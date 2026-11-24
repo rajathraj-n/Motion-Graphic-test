@@ -1,3 +1,4 @@
+import {useContent} from '../content';
 import React from 'react';
 import {AbsoluteFill, random, useCurrentFrame} from 'remotion';
 import {Camera, Glass, Layer} from '../components/Stage';
@@ -189,6 +190,7 @@ const ChallengeChip: React.FC<{text: string; delay: number; x: number; y: number
 
 export const Scene2Challenge: React.FC = () => {
   const f = useCurrentFrame();
+  const t = useContent().s2;
   const D = 196;
   const camX = keys(f, [0, D], [90, -90]);
   const camRy = keys(f, [0, D], [-5, 5]);
@@ -281,11 +283,11 @@ export const Scene2Challenge: React.FC = () => {
         </svg>
       </Camera>
 
-      <Kicker text="THE CHALLENGE" delay={4} style={{position: 'absolute', left: 120, top: 86}} />
+      <Kicker text={t.kicker} delay={4} style={{position: 'absolute', left: 120, top: 86}} />
 
-      <ChallengeChip text="SCATTERED DATA" delay={40} x={170} y={700} />
-      <ChallengeChip text="SLOW HANDOFFS" delay={58} x={740} y={860} />
-      <ChallengeChip text="DISCONNECTED TOOLS" delay={76} x={1250} y={680} />
+      <ChallengeChip text={t.chip1} delay={40} x={170} y={700} />
+      <ChallengeChip text={t.chip2} delay={58} x={740} y={860} />
+      <ChallengeChip text={t.chip3} delay={76} x={1250} y={680} />
     </AbsoluteFill>
   );
 };
