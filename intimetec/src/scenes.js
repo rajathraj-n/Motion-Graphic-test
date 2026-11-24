@@ -11,6 +11,22 @@
   const TAU = Math.PI * 2;
   const BEAT = 60 / 118;
 
+  // ---- editable on-screen copy (overridable from Remotion props via FC.setText)
+  const DEFAULT_TEXT = {
+    hookFrom: 'COMPLEXITY', hookTo: 'OPPORTUNITY',
+    problems: ['DISCONNECTED TOOLS', 'SCATTERED DATA', 'MANUAL HANDOFFS'],
+    connectedHeadline: 'BUILDING CONNECTED SOLUTIONS',
+    pillars: [{ title: 'PEOPLE', subtitle: 'Teams and expertise' }, { title: 'PROCESS', subtitle: 'Connected workflows' }, { title: 'TECHNOLOGY', subtitle: 'Modern platforms' }],
+    aiHeadline: 'INTELLIGENT AUTOMATION',
+    softwareKicker: 'CUSTOM SOFTWARE', softwareHeadline: ['SOFTWARE', 'BUILT AROUND', 'YOU.'],
+    capabilitiesHeadline: 'DATA. CLOUD. SECURITY.',
+    outcomes: ['CLARITY', 'CONFIDENCE', 'GROWTH'],
+    wordmark: 'IN TIME TEC', tagline: 'CREATING ABUNDANCE', cta: "LET'S BUILD WHAT'S NEXT", website: 'www.intimetec.com',
+  };
+  FC.DEFAULT_TEXT = DEFAULT_TEXT;
+  FC.setText = (obj) => { FC.TEXT = obj; FC.TEXT_KEY = obj ? JSON.stringify(obj) : ''; };
+  const TX = () => (FC.TEXT ? { ...DEFAULT_TEXT, ...FC.TEXT } : DEFAULT_TEXT);
+
   // ================================================== shared UI chrome ===
   function base(c, w, h, a = 0.42) {
     UI.rr(c, 0, 0, w, h, 24);
@@ -150,16 +166,17 @@
       UI.glowPath(c, path, lp, { w: 2.2, pulses: [ph, (ph + 0.33) % 1, (ph + 0.66) % 1] });
     }
   } };
-  const uiTriad = (label, icon, sub) => ({ w: 320, h: 150, draw(c, t, w, h) {
+  const uiTriad = (i, icon) => ({ w: 320, h: 150, draw(c, t, w, h) {
+    const { title: label, subtitle: sub } = TX().pillars[i] || DEFAULT_TEXT.pillars[i];
     base(c, w, h, 0.5);
     UI.rr(c, 24, 26, 48, 48, 14); c.fillStyle = SOFT; c.fill();
     UI.icon(c, icon, 36, 38, 24, O, 2);
     UI.text(c, label, 88, 60, { size: 22, w: 600, ls: '2px' });
     UI.text(c, sub, 24, 116, { size: 13, w: 400, color: MUTED });
   } });
-  const uiPeople = uiTriad('PEOPLE', 'users', 'Teams and expertise');
-  const uiProcess = uiTriad('PROCESS', 'flow', 'Connected workflows');
-  const uiTech = uiTriad('TECHNOLOGY', 'layers', 'Modern platforms');
+  const uiPeople = uiTriad(0, 'users');
+  const uiProcess = uiTriad(1, 'flow');
+  const uiTech = uiTriad(2, 'layers');
 
   // --------------------------------------------------- scene 4 panels ----
   const MW = 1300, MH = 760;
@@ -398,14 +415,15 @@
     UI.text(c, 'Pipeline', 1104, 134, { size: 14, w: 600, color: MUTED });
     UI.bars(c, 1104, 170, 240, 360, seg(t, 41.3, 42.5));
   } };
-  const uiOutcome = (word, icon) => ({ w: 340, h: 190, draw(c, t, w, h) {
+  const uiOutcome = (i, icon) => ({ w: 340, h: 190, draw(c, t, w, h) {
+    const word = TX().outcomes[i] ?? DEFAULT_TEXT.outcomes[i];
     base(c, w, h, 0.62);
     UI.rr(c, 28, 28, 56, 56, 16); c.fillStyle = SOFT; c.fill();
     UI.icon(c, icon, 44, 44, 24, O, 2);
     UI.text(c, word, 28, 146, { size: 30, w: 600, ls: '3px' });
     UI.bar(c, 28, 162, 46, 4, O);
   } });
-  const uiClarity = uiOutcome('CLARITY', 'eye'), uiConf = uiOutcome('CONFIDENCE', 'shieldCheck'), uiGrowth = uiOutcome('GROWTH', 'trend');
+  const uiClarity = uiOutcome(0, 'eye'), uiConf = uiOutcome(1, 'shieldCheck'), uiGrowth = uiOutcome(2, 'trend');
 
   // ===================================================== backgrounds =====
   function bgSoft(c, o = {}) {
@@ -489,19 +507,19 @@
           const y = 845 - 10 * ex, size = 96;
           c.font = F(700, size); c.letterSpacing = '4px';
           const sweep = easeInOutQuint(seg(t, 3.2, 3.95));
-          const wA = c.measureText('COMPLEXITY').width, wB = c.measureText('OPPORTUNITY').width, wm = Math.max(wA, wB);
+          const wA = c.measureText(TX().hookFrom).width, wB = c.measureText(TX().hookTo).width, wm = Math.max(wA, wB);
           const lx = lerp(960 - wm / 2 - 60, 960 + wm / 2 + 60, sweep);
           // highlight behind the new word
           const hk = easeOutExpo(seg(t, 3.55, 4.2));
           if (hk > 0) { UI.rr(c, 960 - (wB / 2 + 40) * hk, y - 92, (wB + 80) * hk, 120, 60); c.fillStyle = `rgba(240,96,35,${0.12 * hk})`; c.fill(); UI.light(c, 960, y - 32, 520 * hk, ORANGE, 0.18 * hk); }
           c.save(); c.beginPath(); c.rect(lx, 0, W, H); c.clip();
-          c.fillStyle = K; c.textAlign = 'center'; c.fillText('COMPLEXITY', 960, y + (1 - tp) * 90); c.restore();
+          c.fillStyle = K; c.textAlign = 'center'; c.fillText(TX().hookFrom, 960, y + (1 - tp) * 90); c.restore();
           c.save(); c.beginPath(); c.rect(0, 0, lx, H); c.clip();
-          c.fillStyle = O; c.textAlign = 'center'; c.fillText('OPPORTUNITY', 960, y); c.restore();
+          c.fillStyle = O; c.textAlign = 'center'; c.fillText(TX().hookTo, 960, y); c.restore();
           c.letterSpacing = '0px';
           if (sweep > 0 && sweep < 1) { c.fillStyle = O; c.fillRect(lx - 1.5, y - 110, 3, 140); UI.light(c, lx, y - 40, 90, YELLOW, 0.6); }
           // small kicker label
-          UI.label(c, 'COMPLEXITY  →  OPPORTUNITY', 960, y - 128, { align: 'center', alpha: tp * (1 - ex) * 0.9, size: 14, ls: '5px' });
+          UI.label(c, `${TX().hookFrom}  →  ${TX().hookTo}`, 960, y - 128, { align: 'center', alpha: tp * (1 - ex) * 0.9, size: 14, ls: '5px' });
           c.restore();
         }
         whiteOver(c, easeIn(seg(t, 4.55, 4.98)));
@@ -604,7 +622,7 @@
       over(c) {
         whiteOver(c, 1 - easeOut(seg(t, 5.0, 5.45)));
         // problem labels
-        const labels = [['DISCONNECTED TOOLS', 'layers'], ['SCATTERED DATA', 'db'], ['MANUAL HANDOFFS', 'users']];
+        const labels = ['layers', 'db', 'users'].map((ic, i) => [TX().problems[i] ?? '', ic]);
         labels.forEach(([s, ic], i) => {
           const k = easeOutQuint(seg(t, 9.1 + i * 0.25, 9.7 + i * 0.25)), e = easeIn(seg(t, 10.9 + i * 0.06, 11.3 + i * 0.06));
           if (k <= 0 || e >= 1) return;
@@ -626,7 +644,7 @@
           c.fillStyle = 'rgba(255,214,0,0.7)'; c.fillRect(x - 1.5, 0, 3, H);
         }
         // headline
-        UI.kinetic(c, 'BUILDING CONNECTED SOLUTIONS', 960, 118, seg(t, 13.25, 13.95), { size: 50, w: 600, ls: '3px', exit: seg(t, 17.2, 17.6) });
+        UI.kinetic(c, TX().connectedHeadline, 960, 118, seg(t, 13.25, 13.95), { size: 50, w: 600, ls: '3px', exit: seg(t, 17.2, 17.6) });
         // the three cards connect, then the line races forward into the light wipe
         if (t > 16.9) {
           const pts = [];
@@ -670,7 +688,7 @@
       bg(c) { bgSoft(c, { glows: [[960, 620, 1000, 0.13], [1600, 200, 600, 0.1, YELLOW], [300, 900, 700, 0.08]] }); },
       over(c) {
         lightWipe(c, seg(t, 18.0, 18.5), 'out');
-        UI.kinetic(c, 'INTELLIGENT AUTOMATION', 960, 104, seg(t, 18.6, 19.3), { size: 50, w: 600, ls: '3px', exit: seg(t, 23.5, 23.9) });
+        UI.kinetic(c, TX().aiHeadline, 960, 104, seg(t, 18.6, 19.3), { size: 50, w: 600, ls: '3px', exit: seg(t, 23.5, 23.9) });
         // cursor selects the review action
         const btn = FC.panelToScreen(b, I, BTN.x + BTN.w * 0.45, BTN.y + BTN.h * 0.6);
         const mv = easeInOutQuint(seg(t, 24.35, 24.92));
@@ -719,8 +737,8 @@
           UI.glowPath(c, pts, seg(t, 32.35, 33.0) * (t > 33.2 ? 0.9 : 1) + (t > 33.2 ? 0.1 * seg(t, 33.2, 33.9) : 0), { w: 3, pulses: [((t - 32) * 0.7) % 1] });
         }
         const hx = 1475, hk = seg(t, 32.5, 33.2), he = seg(t, 33.2, 33.55);
-        UI.label(c, 'CUSTOM SOFTWARE', hx, 430, { alpha: easeOut(hk) * (1 - he), size: 14, ls: '4px' });
-        ['SOFTWARE', 'BUILT AROUND', 'YOU.'].forEach((s, i) => UI.kinetic(c, s, hx, 500 + i * 66, seg(t, 32.55 + i * 0.1, 33.15 + i * 0.1), { size: 54, w: 700, align: 'left', exit: he, color: i === 2 ? O : K }));
+        UI.label(c, TX().softwareKicker, hx, 430, { alpha: easeOut(hk) * (1 - he), size: 14, ls: '4px' });
+        TX().softwareHeadline.slice(0, 3).forEach((s, i) => UI.kinetic(c, s, hx, 500 + i * 66, seg(t, 32.55 + i * 0.1, 33.15 + i * 0.1), { size: 54, w: 700, align: 'left', exit: he, color: i === 2 ? O : K }));
       },
     };
   }
@@ -762,7 +780,7 @@
         // incoming line from the previous scene → centre point
         const ip = easeOutQuint(seg(t, 34.0, 34.35)), io = seg(t, 34.6, 35.0);
         if (io < 1) { c.globalAlpha = 1 - io; UI.glowPath(c, [{ x: -60, y: 560 }, { x: 960, y: 545 }], ip, { w: 3 }); UI.light(c, 960, 545, 80, YELLOW, 0.8 * ip * (1 - seg(t, 34.4, 34.9))); c.globalAlpha = 1; }
-        UI.kinetic(c, 'DATA. CLOUD. SECURITY.', 960, 112, seg(t, 34.7, 35.3), { size: 50, w: 600, ls: '4px', exit: seg(t, 39.9, 40.2) });
+        UI.kinetic(c, TX().capabilitiesHeadline, 960, 112, seg(t, 34.7, 35.3), { size: 50, w: 600, ls: '4px', exit: seg(t, 39.9, 40.2) });
         // compact → lines into the centre → circular light wipe
         if (t > 40.15) {
           const cpt = { x: 960, y: 545 };
@@ -858,7 +876,7 @@
           c.save();
           c.font = F(500, 30); c.letterSpacing = `${lerp(22, 12, easeOutQuint(tk))}px`; c.textAlign = 'center';
           c.fillStyle = K; c.globalAlpha = easeOut(tk);
-          c.fillText('CREATING ABUNDANCE', 966, 630);
+          c.fillText(TX().tagline, 966, 630);
           c.restore();
         }
         const ck = easeOutQuint(seg(t, 48.9, 49.45));
@@ -866,13 +884,13 @@
           c.save(); c.globalAlpha = ck;
           const y = 790 + (1 - ck) * 24;
           c.font = F(600, 22); c.letterSpacing = '3px';
-          const tw = c.measureText("LET'S BUILD WHAT'S NEXT").width + 3;
+          const tw = c.measureText(TX().cta).width + 3;
           const bw = tw + 110;
           UI.rr(c, 960 - bw / 2, y - 34, bw, 68, 34); c.fillStyle = O; c.fill();
-          c.fillStyle = '#fff'; c.textAlign = 'left'; c.fillText("LET'S BUILD WHAT'S NEXT", 960 - bw / 2 + 40, y + 8);
+          c.fillStyle = '#fff'; c.textAlign = 'left'; c.fillText(TX().cta, 960 - bw / 2 + 40, y + 8);
           UI.icon(c, 'arrow', 960 + bw / 2 - 62, y - 12, 24, '#fff', 2.4);
           c.letterSpacing = '1px';
-          UI.text(c, 'www.intimetec.com', 960, y + 82, { size: 22, w: 400, color: '#5D626B', align: 'center', ls: '1px' });
+          UI.text(c, TX().website, 960, y + 82, { size: 22, w: 400, color: '#5D626B', align: 'center', ls: '1px' });
           c.restore();
         }
       },
@@ -888,7 +906,7 @@
       img.onerror = () => tryLoad(srcs.slice(1));
       img.src = srcs[0];
     };
-    tryLoad(['assets/logo.svg', 'assets/logo.png']);
+    tryLoad([(FC.ASSET_BASE || '') + 'assets/logo.svg', (FC.ASSET_BASE || '') + 'assets/logo.png']);
   });
   /** Official logo if supplied (drawn unmodified, aspect preserved); otherwise a plain wordmark placeholder. */
   FC.drawLogo = (c, x, y, k) => {
@@ -901,7 +919,7 @@
       c.drawImage(FC.logo, -w / 2, -h / 2 - 10, w, h);
     } else {
       c.font = F(700, 104); c.letterSpacing = '4px'; c.textAlign = 'center'; c.fillStyle = K;
-      c.fillText('IN TIME TEC', 4, 36);
+      c.fillText(TX().wordmark, 4, 36);
     }
     c.restore();
   };

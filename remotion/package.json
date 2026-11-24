@@ -1,0 +1,27 @@
+{
+  "name": "motion-graphics-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion Studio project for the In Time Tec and FREEDOM films (editable text props, live preview, render).",
+  "scripts": {
+    "sync": "node scripts/sync-assets.mjs",
+    "dev": "npm run sync && remotion studio",
+    "studio": "npm run sync && remotion studio",
+    "render:intimetec": "npm run sync && remotion render InTimeTec out/intimetec.mp4 --gl=angle",
+    "render:intimetec:4k": "npm run sync && remotion render InTimeTec out/intimetec_4k.mp4 --scale=2 --gl=angle",
+    "render:freedom": "npm run sync && remotion render Freedom out/freedom.mp4 --gl=angle",
+    "render:freedom:4k": "npm run sync && remotion render Freedom out/freedom_4k.mp4 --scale=2 --gl=angle"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.546",
+    "@remotion/zod-types": "4.0.546",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.546",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "typescript": "5.6.3"
+  }
+}

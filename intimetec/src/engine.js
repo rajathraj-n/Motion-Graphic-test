@@ -195,7 +195,7 @@
     return { def, c, ctx, res, tex, key: undefined };
   }
   function updateTex(T, t) {
-    const key = T.def.dynamic ? (T.def.key ? T.def.key(t) : Math.round(t * 30)) : 'static';
+    const key = (T.def.dynamic ? (T.def.key ? T.def.key(t) : Math.round(t * 30)) : 'static') + '|' + (FC.TEXT_KEY || '');
     if (key === T.key) return;
     T.key = key;
     const ctx = T.ctx;

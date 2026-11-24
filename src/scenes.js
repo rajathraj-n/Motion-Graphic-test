@@ -10,6 +10,22 @@
     blobPts, fillBlobMask, fillWipeMask, drawPaper, granulate, glow, title, person,
   } = FC;
 
+  // ---- editable on-screen copy (overridable from Remotion props via FC.setText)
+  const DEFAULT_TEXT = {
+    title: 'THE COLORS OF COURAGE',
+    rani: ['RANI LAKSHMIBAI', '— 1857 —'],
+    bhagat: ['BHAGAT SINGH', 'THE REVOLUTIONARY SPIRIT'],
+    gandhi: ['MAHATMA GANDHI', 'THE POWER OF PEACE'],
+    netaji: ['NETAJI', 'SUBHAS CHANDRA BOSE'],
+    medallions: ['RANI LAKSHMIBAI', 'BHAGAT SINGH', 'MAHATMA GANDHI', 'NETAJI SUBHAS\nCHANDRA BOSE'],
+    date: '15 AUGUST 1947',
+    finalTitle: 'THEIR COURAGE. OUR FREEDOM.',
+    finalLine: "A TRIBUTE TO INDIA'S FREEDOM FIGHTERS",
+  };
+  FC.DEFAULT_TEXT = DEFAULT_TEXT;
+  FC.setText = (obj) => { FC.TEXT = obj; };
+  const TX = () => (FC.TEXT ? { ...DEFAULT_TEXT, ...FC.TEXT } : DEFAULT_TEXT);
+
   const INK = [34, 26, 22];
   const SAFFRON = [234, 136, 44], WHITE = [246, 241, 230], GREEN = [34, 128, 54], NAVY = [24, 34, 112];
   const TAU = Math.PI * 2;
@@ -158,7 +174,7 @@
       // people emerging in the background
       const cp = seg(lt, 2.3, 3.6);
       if (cp > 0) withCam(c, k, 1.25, () => drawLayer(c, this.crowd, 0, 30 * (1 - easeOut(cp)), easeOut(cp)));
-      title(c, [{ text: 'THE COLORS OF COURAGE', font: F.big(86), spacing: '10px', lh: 96, rule: true }], 960, 930, seg(lt, 2.35, 3.5), { seed: 2 });
+      title(c, [{ text: TX().title, font: F.big(86), spacing: '10px', lh: 96, rule: true }], 960, 930, seg(lt, 2.35, 3.5), { seed: 2 });
     },
   };
 
@@ -275,8 +291,8 @@
       glow(c, x + 40 - k.px * 0.2, 470, 380, [255, 214, 140], 0.6 * seg(lt, 1.5, 2.6));
       withCam(c, k, 1.35, () => drawLayer(c, this.fore));
       title(c, [
-        { text: 'RANI LAKSHMIBAI', font: F.big(62), spacing: '6px', lh: 66 },
-        { text: '— 1857 —', font: F.ital(44), spacing: '4px', lh: 44, color: 'rgb(120,50,28)' },
+        { text: TX().rani[0], font: F.big(62), spacing: '6px', lh: 66 },
+        { text: TX().rani[1] ?? '', font: F.ital(44), spacing: '4px', lh: 44, color: 'rgb(120,50,28)' },
       ], 120, 930, seg(lt, 1.6, 2.7), { align: 'left', seed: 5 });
     },
   };
@@ -373,8 +389,8 @@
       FC.inkFig(c, this.fig, seg(lt, 0.0, 1.35), { ...bustInk(hx, hy, bk), charcoal: true, alpha: 0.85, wMul: 0.9 });
       c.restore();
       title(c, [
-        { text: 'BHAGAT SINGH', font: F.big(66), spacing: '6px', lh: 58 },
-        { text: 'THE REVOLUTIONARY SPIRIT', font: F.mid(28), spacing: '7px', lh: 30, color: 'rgb(130,52,26)' },
+        { text: TX().bhagat[0], font: F.big(66), spacing: '6px', lh: 58 },
+        { text: TX().bhagat[1] ?? '', font: F.mid(28), spacing: '7px', lh: 30, color: 'rgb(130,52,26)' },
       ], 110, 160, seg(lt, 1.4, 2.5), { align: 'left', seed: 9 });
     },
   };
@@ -460,8 +476,8 @@
         c.restore();
       }
       title(c, [
-        { text: 'MAHATMA GANDHI', font: F.big(62), spacing: '6px', lh: 56 },
-        { text: 'THE POWER OF PEACE', font: F.mid(28), spacing: '8px', lh: 30, color: 'rgb(56,92,110)' },
+        { text: TX().gandhi[0], font: F.big(62), spacing: '6px', lh: 56 },
+        { text: TX().gandhi[1] ?? '', font: F.mid(28), spacing: '8px', lh: 30, color: 'rgb(56,92,110)' },
       ], 110, 150, seg(lt, 1.3, 2.4), { align: 'left', seed: 13 });
     },
   };
@@ -511,8 +527,8 @@
       c.restore();
       glow(c, 800 - k.px * 0.1, 400, 330, [255, 178, 90], 0.55 * seg(lt, 1.0, 2.0));
       title(c, [
-        { text: 'NETAJI', font: F.big(76), spacing: '10px', lh: 62 },
-        { text: 'SUBHAS CHANDRA BOSE', font: F.mid(36), spacing: '6px', lh: 36, color: 'rgb(40,82,52)' },
+        { text: TX().netaji[0], font: F.big(76), spacing: '10px', lh: 62 },
+        { text: TX().netaji[1] ?? '', font: F.mid(36), spacing: '6px', lh: 36, color: 'rgb(40,82,52)' },
       ], 1480, 200, seg(lt, 1.2, 2.3), { seed: 17 });
     },
   };
@@ -621,7 +637,7 @@
         masked(c, 0, (s) => {
           s.drawImage(m.cv, xs[i] - size / 2, 400 - size / 2, size, size);
         }, (s) => fillBlobMask(s, xs[i], 400, 210 * easeOut(a), 300 + i, 0.25));
-        title(c, m.names.map((t) => ({ text: t, font: F.mid(19), spacing: '3px', lh: 23 })), xs[i], 598, seg(lt, 1.6 + i * 0.38, 2.3 + i * 0.38), { seed: 310 + i, plateAlpha: 0.75 });
+        title(c, String(TX().medallions[i] ?? '').split('\n').map((t) => ({ text: t, font: F.mid(19), spacing: '3px', lh: 23 })), xs[i], 598, seg(lt, 1.6 + i * 0.38, 2.3 + i * 0.38), { seed: 310 + i, plateAlpha: 0.75 });
       });
       // ink dust settling
       const dl = 1 - seg(lt, 3.4, 4.6);
@@ -632,9 +648,9 @@
           c.beginPath(); c.arc(d.x + Math.sin(d.ph + lt) * 6, d.y + d.d * fall, d.r, 0, TAU); c.fill();
         }
       }
-      title(c, [{ text: '15 AUGUST 1947', font: F.mid(34), spacing: '12px', lh: 40, color: 'rgb(120,56,24)' }], 960, 788, seg(lt, 0.9, 1.9), { seed: 320, plateAlpha: 0.7 });
-      title(c, [{ text: 'THEIR COURAGE. OUR FREEDOM.', font: F.big(68), spacing: '8px', lh: 74, rule: true }], 960, 902, seg(lt, 4.0, 5.0), { seed: 330, plateAlpha: 0.75 });
-      title(c, [{ text: "A TRIBUTE TO INDIA'S FREEDOM FIGHTERS", font: F.ital(34), spacing: '4px', lh: 34, color: 'rgb(90,60,36)' }], 960, 966, seg(lt, 4.6, 5.4), { seed: 340, plate: false });
+      title(c, [{ text: TX().date, font: F.mid(34), spacing: '12px', lh: 40, color: 'rgb(120,56,24)' }], 960, 788, seg(lt, 0.9, 1.9), { seed: 320, plateAlpha: 0.7 });
+      title(c, [{ text: TX().finalTitle, font: F.big(68), spacing: '8px', lh: 74, rule: true }], 960, 902, seg(lt, 4.0, 5.0), { seed: 330, plateAlpha: 0.75 });
+      title(c, [{ text: TX().finalLine, font: F.ital(34), spacing: '4px', lh: 34, color: 'rgb(90,60,36)' }], 960, 966, seg(lt, 4.6, 5.4), { seed: 340, plate: false });
     },
   };
 
@@ -715,7 +731,7 @@
       const img = new Image();
       img.onload = () => { FC.portraits[n] = img; res(); };
       img.onerror = () => res();
-      img.src = `assets/portraits/${n}.png`;
+      img.src = `${FC.ASSET_BASE || ''}assets/portraits/${n}.png`;
     })));
   }
 
