@@ -9,7 +9,8 @@
     "render:prores": "remotion render InTimeTecPromo out/intimetec-promo-4k.mov --scale=2 --codec=prores --prores-profile=hq",
     "render:preview": "remotion render InTimeTecPromo out/intimetec-promo-1080p.mp4 --codec=h264 --crf=18",
     "still": "remotion still InTimeTecPromo out/still.png --frame=600",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:player": "node tools/player/build.mjs out/player.html"
   },
   "dependencies": {
     "@remotion/cli": "4.0.546",
@@ -20,7 +21,10 @@
     "remotion": "4.0.546"
   },
   "devDependencies": {
+    "@remotion/player": "4.0.546",
     "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "esbuild": "0.24.0",
     "typescript": "5.6.3"
   }
 }
