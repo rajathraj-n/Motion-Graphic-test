@@ -10,7 +10,8 @@
     "render:preview": "remotion render InTimeTecPromo out/intimetec-promo-1080p.mp4 --codec=h264 --crf=18",
     "still": "remotion still InTimeTecPromo out/still.png --frame=600",
     "typecheck": "tsc --noEmit",
-    "build:player": "node tools/player/build.mjs out/player.html"
+    "build:player": "node tools/player/build.mjs out/player.html",
+    "build:studio": "remotion bundle src/index.ts --public-path=./ --out-dir=out/studio"
   },
   "dependencies": {
     "@remotion/cli": "4.0.546",
