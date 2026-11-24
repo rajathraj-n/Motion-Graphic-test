@@ -1,5 +1,7 @@
 import React from "react";
-import { AbsoluteFill, Audio, Sequence, staticFile } from "remotion";
+import { AbsoluteFill, Audio, Sequence } from "remotion";
+import { asset } from "./assets";
+import { Copy, CopyProvider } from "./copy";
 import { OUTPUT_SCALE, SCENES, STAGE_H, STAGE_W, TAIL, TOTAL_FRAMES } from "./theme";
 import { Background, FilmGrain } from "./components/Atmosphere";
 import { Scene01Hook } from "./scenes/Scene01Hook";
@@ -22,17 +24,24 @@ const COMPONENTS: Record<(typeof SCENES)[number]["id"], React.FC> = {
   brand: Scene08Brand,
 };
 
-export type VideoProps = { music: boolean };
+export type VideoProps = {
+  music: boolean;
+  copy?: Partial<Copy>;
+  /** stage → output scale; 2 = 4K. The web player uses 1. */
+  scale?: number;
+  musicFile?: string;
+};
 
 /**
  * Master timeline. Every scene is authored on a 1920x1080 stage and the whole
  * stage is scaled by OUTPUT_SCALE so text and vectors rasterise natively at 4K.
  * Each scene stays mounted for TAIL extra frames so the next one can cross it.
  */
-export const BeyondPossibilities: React.FC<VideoProps> = ({ music }) => {
+export const BeyondPossibilities: React.FC<VideoProps> = ({ music, copy, scale = OUTPUT_SCALE, musicFile = "audio/soundtrack.wav" }) => {
   return (
+    <CopyProvider copy={copy}>
     <AbsoluteFill style={{ background: "#0A0A0A" }}>
-      <div style={{ position: "absolute", left: 0, top: 0, width: STAGE_W, height: STAGE_H, transform: `scale(${OUTPUT_SCALE})`, transformOrigin: "0 0", overflow: "hidden" }}>
+      <div style={{ position: "absolute", left: 0, top: 0, width: STAGE_W, height: STAGE_H, transform: `scale(${scale})`, transformOrigin: "0 0", overflow: "hidden" }}>
         <Background />
         {SCENES.map((s, i) => {
           const Comp = COMPONENTS[s.id];
@@ -48,7 +57,8 @@ export const BeyondPossibilities: React.FC<VideoProps> = ({ music }) => {
         })}
         <FilmGrain opacity={0.06} />
       </div>
-      {music && <Audio src={staticFile("audio/soundtrack.wav")} />}
+      {music && <Audio src={asset(musicFile)} />}
     </AbsoluteFill>
+    </CopyProvider>
   );
 };

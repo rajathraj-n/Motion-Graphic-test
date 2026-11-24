@@ -7,16 +7,17 @@ import { KineticText } from "../components/KineticText";
 import { PromptBar } from "../components/PromptBar";
 import { IconChart, IconCode, IconImage, IconPen, IconSpark } from "../components/Icons";
 import { BrandMark } from "../components/BrandMark";
+import { useCopy } from "../copy";
 
 const PANEL = { x: 308, y: 250, w: 1240, h: 680 };
 const RAIL = 64;
-const PROMPT = "Help me turn an idea into something great.";
-const RESPONSE =
-  "Absolutely — let's shape it together. Share the spark, and I'll help you define the audience, sharpen the story, and map the first steps to bring it to life.";
 
 /** 00:04–00:09 — "Meet ChatGPT. Your ideas. Reimagined." */
 export const Scene02Meet: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useCopy();
+  const PROMPT = copy.meetPrompt;
+  const RESPONSE = copy.meetResponse;
 
   const enter = springIn(f, 0, { damping: 22, stiffness: 70 });
   const rot = (1 - enter) * 20;
@@ -48,8 +49,8 @@ export const Scene02Meet: React.FC = () => {
       <AbsoluteFill style={{ transform: camera, transformOrigin: "960px 860px" }}>
         {/* headline */}
         <div style={{ position: "absolute", top: 70, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, opacity: 1 - prog(f, 250, 280) }}>
-          <KineticText text="Meet ChatGPT." frame={f} start={18} stagger={3} fontSize={72} weight={650} gradient />
-          <KineticText text="Your ideas. Reimagined." frame={f} start={46} stagger={2} fontSize={28} weight={400} color={C.silver} mode="rise" letterSpacing="-0.01em" />
+          <KineticText text={copy.meetHeadline} frame={f} start={18} stagger={3} fontSize={72} weight={650} gradient />
+          <KineticText text={copy.meetSub} frame={f} start={46} stagger={2} fontSize={28} weight={400} color={C.silver} mode="rise" letterSpacing="-0.01em" />
         </div>
 
         {/* 3D panel */}
@@ -81,7 +82,7 @@ export const Scene02Meet: React.FC = () => {
                 return (
                   <div style={{ position: "absolute", left: RAIL + 28, top: 22, right: 28, display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: FONT, opacity: s, transform: `translateY(${(1 - s) * -12}px)` }}>
                     <div style={{ fontSize: 19, fontWeight: 600, color: C.white, letterSpacing: "-0.01em" }}>
-                      ChatGPT <span style={{ color: C.silver, fontWeight: 400 }}>⌄</span>
+                      {copy.brandName} <span style={{ color: C.silver, fontWeight: 400 }}>⌄</span>
                     </div>
                     <div style={{ width: 32, height: 32, borderRadius: 16, background: "linear-gradient(135deg,#3F3F46,#18181B)", border: "1px solid rgba(255,255,255,0.12)" }} />
                   </div>

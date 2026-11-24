@@ -5,10 +5,10 @@ import { blink, clamp, ease, lerp, prog, springIn, typed } from "../lib/anim";
 import { Glass } from "../components/Glass";
 import { KineticText } from "../components/KineticText";
 import { PromptBar } from "../components/PromptBar";
+import { useCopy } from "../copy";
 import { CityArt } from "../components/CityArt";
 import { IconImage, IconSpark } from "../components/Icons";
 
-const PROMPT = "Create a futuristic city surrounded by nature.";
 const PANEL = { x: 400, y: 180, w: 1120, h: 630 };
 const FULL = { x: 0, y: 0, w: 1920, h: 1080 };
 const CARD = { x: 580, y: 316, w: 760, h: 428 };
@@ -32,6 +32,8 @@ const rectLerp = (a: typeof PANEL, b: typeof PANEL, t: number) => ({
 /** 00:21–00:27 — "Bring imagination to life." */
 export const Scene05Imagine: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useCopy();
+  const PROMPT = copy.imaginePrompt;
 
   // iris in from the S4 donut ring (r = 220)
   const iris = interpolate(f, [0, 34], [220, 1250], { ...clamp, easing: ease.in });
@@ -65,7 +67,7 @@ export const Scene05Imagine: React.FC = () => {
       <AbsoluteFill style={{ transform: `translateY(${lerp(-400, 0, macro) + stageDrift}px) scale(${stageScale})`, transformOrigin: "960px 950px" }}>
         {/* headline */}
         <div style={{ position: "absolute", top: 60, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: uiOut }}>
-          <KineticText text="Bring imagination to life." frame={f} start={18} stagger={2.4} fontSize={60} weight={650} gradient />
+          <KineticText text={copy.imagineHeadline} frame={f} start={18} stagger={2.4} fontSize={60} weight={650} gradient />
         </div>
 
         {/* image-generation panel */}

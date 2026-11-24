@@ -10,7 +10,8 @@
     "render:preview": "remotion render BeyondPossibilities out/preview-1080p.mp4 --scale=0.5 --crf=22",
     "still": "remotion still BeyondPossibilities out/still.png --scale=0.5",
     "stills": "node scripts/stills.mjs out/stills 120 420 760 1150 1500 1800 2120 2330",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:web": "esbuild web/App.tsx --bundle --minify --format=iife --jsx=automatic --target=es2020 --define:process.env.NODE_ENV='\"production\"' --outfile=web/dist/app.js"
   },
   "dependencies": {
     "@remotion/cli": "4.0.546",
@@ -19,7 +20,9 @@
     "remotion": "4.0.546"
   },
   "devDependencies": {
+    "@remotion/player": "^4.0.546",
     "@types/react": "18.3.12",
+    "esbuild": "^0.24.0",
     "typescript": "5.6.3"
   }
 }

@@ -4,10 +4,12 @@ import { C, FONT } from "../theme";
 import { ease, lerp, prog, springIn } from "../lib/anim";
 import { BrandMark } from "../components/BrandMark";
 import { KineticText } from "../components/KineticText";
+import { useCopy } from "../copy";
 
 /** 00:37–00:40 — Logo, "Start with a conversation.", chatgpt.com */
 export const Scene08Brand: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useCopy();
   const mask = prog(f, 0, 36, ease.out);
   const draw = prog(f, 0, 46, ease.inOut);
   const glow = prog(f, 4, 50) * (1 - prog(f, 150, 180) * 0.5);
@@ -27,13 +29,13 @@ export const Scene08Brand: React.FC = () => {
           <BrandMark size={150} draw={draw} />
         </div>
         <div style={{ marginTop: 30 }}>
-          <KineticText text="ChatGPT" frame={f} start={16} stagger={2.4} fontSize={84} weight={650} mode="rise" gradient />
+          <KineticText text={copy.brandName} frame={f} start={16} stagger={2.4} fontSize={84} weight={650} mode="rise" gradient />
         </div>
         <div style={{ marginTop: 26, fontFamily: FONT, fontSize: 34, fontWeight: 400, color: "#E4E4E7", letterSpacing: "-0.015em", opacity: tag, transform: `translateY(${(1 - tag) * 22}px)`, filter: `blur(${(1 - tag) * 6}px)` }}>
-          Start with a conversation.
+          {copy.brandTagline}
         </div>
         <div style={{ marginTop: 34, fontFamily: FONT, fontSize: 22, fontWeight: 500, color: C.silver, letterSpacing: "0.04em", opacity: url }}>
-          chatgpt.com
+          {copy.brandUrl}
         </div>
       </div>
     </AbsoluteFill>

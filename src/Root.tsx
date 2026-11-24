@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Composition, OffthreadVideo, staticFile } from "remotion";
 import { BeyondPossibilities, VideoProps } from "./Video";
+import { DEFAULT_COPY } from "./copy";
 import { FPS, OUTPUT_SCALE, STAGE_H, STAGE_W, TOTAL_FRAMES } from "./theme";
 
 /** Plays the already-rendered preview file, so the finished video can be watched in Studio. */
@@ -19,7 +20,7 @@ export const RemotionRoot: React.FC = () => (
     fps={FPS}
     width={STAGE_W * OUTPUT_SCALE}
     height={STAGE_H * OUTPUT_SCALE}
-    defaultProps={{ music: true } satisfies VideoProps}
+    defaultProps={{ music: true, copy: DEFAULT_COPY } satisfies VideoProps}
   />
   <Composition
     id="RenderedPreview1080p"

@@ -4,6 +4,7 @@ import { BEAT, C, FONT, MONO } from "../theme";
 import { clamp, ease, lerp, prog, springIn } from "../lib/anim";
 import { Glass } from "../components/Glass";
 import { BrandMark } from "../components/BrandMark";
+import { useCopy } from "../copy";
 import { IconBulb, IconChart, IconCode, IconImage, IconPen } from "../components/Icons";
 
 const CX = 960;
@@ -35,11 +36,12 @@ const bez = (a: number, b: number, c: number, d: number, t: number) => {
   return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d;
 };
 
-const WORDS = ["Write.", "Think.", "Create.", "Discover."];
 
 /** 00:27–00:33 — "Write. Think. Create. Discover." (beat drop) */
 export const Scene06Workspace: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useCopy();
+  const WORDS = copy.workspaceWords.split(/\s+/).filter(Boolean);
   const fadeIn = prog(f, 0, 16);
 
   // 180° orbit of the camera around the central interface
@@ -114,7 +116,7 @@ export const Scene06Workspace: React.FC = () => {
         <Glass radius={lerp(26, 32, minimal)} fill={0.1 + 0.04 * impact} sweep={(f / 90) % 1} style={{ inset: 0, boxShadow: `0 0 ${80 * impact}px rgba(16,163,127,${0.5 * impact}), 0 40px 80px -20px rgba(0,0,0,0.8)` }}>
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, opacity: 1 - minimal * 2.5, fontFamily: FONT }}>
             <BrandMark size={58} />
-            <div style={{ fontSize: 30, fontWeight: 600, color: C.white, letterSpacing: "-0.02em" }}>ChatGPT</div>
+            <div style={{ fontSize: 30, fontWeight: 600, color: C.white, letterSpacing: "-0.02em" }}>{copy.brandName}</div>
             <div style={{ width: 420, height: 50, borderRadius: 25, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", padding: "0 20px", fontSize: 17, color: C.silver }}>Ask anything</div>
           </div>
         </Glass>

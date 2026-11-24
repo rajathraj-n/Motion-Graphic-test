@@ -1,0 +1,106 @@
+<title>Beyond Possibilities Editor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: an edit bay. The video and its scene strip on the left, the script on the right, scene groups light up as the playhead passes. */
+  :root {
+    --bg: #F4F5F4;
+    --surface: #FFFFFF;
+    --sunken: #ECEEED;
+    --line: #DADDDB;
+    --fg: #16181A;
+    --muted: #5E6560;
+    --accent: #0E8A6B;
+    --accent-soft: rgba(14,138,107,0.10);
+    --on-accent: #FFFFFF;
+    --stage: #0A0A0A;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D0F0E; --surface: #151817; --sunken: #1B1F1D; --line: #2A2F2C;
+      --fg: #ECEEED; --muted: #9AA39E; --accent: #10A37F; --accent-soft: rgba(16,163,127,0.14);
+      --on-accent: #04140F; --stage: #000000; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D0F0E; --surface: #151817; --sunken: #1B1F1D; --line: #2A2F2C;
+    --fg: #ECEEED; --muted: #9AA39E; --accent: #10A37F; --accent-soft: rgba(16,163,127,0.14);
+    --on-accent: #04140F; --stage: #000000; color-scheme: dark;
+  }
+  html, body { background: var(--bg); color: var(--fg); }
+  body {
+    font-family: var(--sans); font-size: 14px; line-height: 1.5;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 32px;
+  }
+  .shell { max-width: 1480px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -0.02em; text-wrap: balance; }
+  .meta { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn {
+    font: inherit; font-weight: 600; font-size: 13px; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent);
+  }
+  .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .btn:focus-visible, .seg:focus-visible, .legendBtn:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
+  @media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .stage { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .playerWrap { background: var(--stage); border-radius: 12px; overflow: hidden; max-width: 100%; box-shadow: 0 20px 50px -24px rgba(0,0,0,0.45); }
+
+  .timeline { list-style: none; margin: 0; padding: 0; display: flex; gap: 3px; }
+  .timeline li { min-width: 0; flex-basis: 0; }
+  .seg {
+    width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 4px;
+    padding: 7px 8px; border-radius: 6px; cursor: pointer; font: inherit;
+    background: var(--sunken); color: var(--muted); border: 1px solid transparent; overflow: hidden;
+  }
+  .seg.on { background: var(--accent-soft); color: var(--fg); border-color: var(--accent); }
+  .segNum { font-weight: 600; font-size: 12px; }
+  .segTc { font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  @media (max-width: 640px) { .segTc { display: none; } .seg { justify-content: center; } }
+  .note { margin: 0; color: var(--muted); font-size: 12.5px; max-width: 72ch; }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; }
+
+  .panel {
+    min-width: 0; display: flex; flex-direction: column; gap: 10px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+  }
+  @media (min-width: 961px) { .panel { max-height: calc(100vh - 120px); overflow-y: auto; position: sticky; top: 16px; } }
+  .group { margin: 0; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; transition: border-color .2s, background .2s; }
+  .group.on { border-color: var(--accent); background: var(--accent-soft); }
+  .group legend { padding: 0 4px; margin-left: -4px; }
+  .legendBtn { all: unset; cursor: pointer; display: inline-flex; align-items: baseline; gap: 8px; border-radius: 4px; }
+  .tc { font-family: var(--mono); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .gTitle { font-weight: 600; font-size: 13.5px; }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .fLabel { font-size: 11.5px; font-weight: 500; color: var(--muted); letter-spacing: 0.02em; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 3px; background: var(--accent); }
+  input, textarea {
+    font: inherit; font-size: 14px; color: var(--fg); background: var(--sunken);
+    border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 100%; box-sizing: border-box; min-width: 0;
+  }
+  textarea { resize: vertical; }
+  textarea.mono { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px);
+    background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 8px; font-size: 13px;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (prefers-reduced-motion: reduce) { .toast, .group { transition: none; } }
+</style>
+<div id="root"></div>
+<script src="app.js"></script>

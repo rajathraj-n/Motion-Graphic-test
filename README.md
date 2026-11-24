@@ -67,3 +67,10 @@ scripts/
 
 - `remotion.config.ts` sets JPEG frames at quality 95, yuv420p, and concurrency 2. Backdrop blur at 4K uses a lot of memory, so raise concurrency only if you have the RAM.
 - To deliver a mezzanine master, add `--codec=prores --prores-profile=hq`.
+
+## Editing the text
+
+All on-screen text lives in one place: `DEFAULT_COPY` in `src/copy.tsx`. You can change it in three ways:
+- edit that file;
+- in Remotion Studio, select **BeyondPossibilities** and change `copy` in the props panel on the right;
+- use the web editor in `web/`. It is the same scenes running in Remotion's player, with a text panel beside them. Rebuild it with `npm run build:web`. Its **Copy text as JSON** button gives you `{ "copy": … }`, which you can paste into Studio's props panel.

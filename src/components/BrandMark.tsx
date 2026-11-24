@@ -1,5 +1,6 @@
 import React from "react";
-import { Img, staticFile } from "remotion";
+import { Img } from "remotion";
+import { asset } from "../assets";
 
 /**
  * BRAND LOGO SLOT
@@ -19,7 +20,7 @@ export const BrandMark: React.FC<{ size: number; draw?: number; color?: string }
   color = "#FFFFFF",
 }) => {
   if (BRAND_LOGO_FILE) {
-    return <Img src={staticFile(BRAND_LOGO_FILE)} style={{ width: size, height: size, objectFit: "contain" }} />;
+    return <Img src={asset(BRAND_LOGO_FILE)} style={{ width: size, height: size, objectFit: "contain" }} />;
   }
   // Placeholder: a neutral "conversation spark" glyph (not the official mark).
   const len = 260;

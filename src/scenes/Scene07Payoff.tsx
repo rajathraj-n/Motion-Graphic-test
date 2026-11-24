@@ -2,12 +2,14 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { ease, lerp, prog } from "../lib/anim";
 import { KineticText } from "../components/KineticText";
+import { useCopy } from "../copy";
 
 const CY = 560;
 
 /** 00:33–00:37 — "Less friction. More possibilities." */
 export const Scene07Payoff: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useCopy();
 
   // pill (from S6) collapses into an illuminated line
   const toLine = prog(f, 0, 28, ease.inOut);
@@ -46,14 +48,14 @@ export const Scene07Payoff: React.FC = () => {
         {/* "Less friction." — rises from behind the line (vertical mask) */}
         <div style={{ position: "absolute", left: 0, right: 0, top: CY - 150, height: 140, overflow: "hidden", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
           <div style={{ transform: `scale(${1 + swap * 0.35})`, opacity: 1 - swap, filter: swap > 0 ? `blur(${swap * 16}px)` : undefined, paddingBottom: 18 }}>
-            <KineticText text="Less friction." frame={f} start={26} stagger={2.2} fontSize={96} weight={650} mode="rise" mask={false} gradient />
+            <KineticText text={copy.payoffLine1} frame={f} start={26} stagger={2.2} fontSize={96} weight={650} mode="rise" mask={false} gradient />
           </div>
         </div>
 
         {/* "More possibilities." — scales in through the same space */}
         <div style={{ position: "absolute", left: 0, right: 0, top: CY - 150, height: 140, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
           <div style={{ transform: `scale(${lerp(0.7, 1, swap)})`, opacity: swap, filter: swap < 1 ? `blur(${(1 - swap) * 14}px)` : undefined, paddingBottom: 18, transformOrigin: "50% 80%" }}>
-            <KineticText text="More possibilities." frame={f} start={112} stagger={1.6} fontSize={96} weight={650} mode="scale" mask={false} gradient />
+            <KineticText text={copy.payoffLine2} frame={f} start={112} stagger={1.6} fontSize={96} weight={650} mode="scale" mask={false} gradient />
           </div>
         </div>
       </AbsoluteFill>

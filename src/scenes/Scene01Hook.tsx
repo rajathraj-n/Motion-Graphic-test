@@ -4,6 +4,7 @@ import { C } from "../theme";
 import { blink, ease, lerp, prog, tween } from "../lib/anim";
 import { KineticText } from "../components/KineticText";
 import { PromptBar } from "../components/PromptBar";
+import { useCopy } from "../copy";
 
 const CX = 960;
 const CY = 540;
@@ -27,6 +28,7 @@ const PARTICLES = new Array(N).fill(0).map((_, i) => {
 /** 00:00–00:04 — "Everything starts with an idea." */
 export const Scene01Hook: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useCopy();
 
   // camera push through typography
   const push = prog(f, 165, 215, ease.in);
@@ -113,7 +115,7 @@ export const Scene01Hook: React.FC = () => {
           filter: textBlur > 0.1 ? `blur(${textBlur}px)` : undefined,
         }}
       >
-        <KineticText text="Everything starts with an idea." frame={f} start={72} stagger={2.6} fontSize={88} weight={600} gradient />
+        <KineticText text={copy.hookHeadline} frame={f} start={72} stagger={2.6} fontSize={88} weight={600} gradient />
       </AbsoluteFill>
 
       {/* cursor -> prompt field */}

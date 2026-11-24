@@ -5,9 +5,9 @@ import { blink, clamp, ease, lerp, prog, springIn, typed } from "../lib/anim";
 import { Glass } from "../components/Glass";
 import { KineticText } from "../components/KineticText";
 import { PromptBar } from "../components/PromptBar";
+import { useCopy } from "../copy";
 import { IconBulb, IconImage, IconPen, IconSpark } from "../components/Icons";
 
-const PROMPT = "Write a creative marketing campaign for a new product.";
 
 const SECTIONS = [
   {
@@ -36,6 +36,8 @@ const BASE = [-32, 0, 32];
 /** 00:09–00:15 — "Create without limits." */
 export const Scene03Create: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useCopy();
+  const PROMPT = copy.createPrompt;
   const fadeIn = prog(f, 0, 20);
 
   // --- prompt macro shot -> pull back
@@ -71,7 +73,7 @@ export const Scene03Create: React.FC = () => {
 
       {/* headline */}
       <div style={{ position: "absolute", top: 64, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: 1 - prog(f, 300, 330) }}>
-        <KineticText text="Create without limits." frame={f} start={186} stagger={2.6} fontSize={64} weight={650} gradient />
+        <KineticText text={copy.createHeadline} frame={f} start={186} stagger={2.6} fontSize={64} weight={650} gradient />
       </div>
 
       {/* response panel (background dissolves as sections become cards) */}

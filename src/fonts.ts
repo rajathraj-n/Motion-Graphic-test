@@ -1,4 +1,5 @@
-import { continueRender, delayRender, staticFile } from "remotion";
+import { continueRender, delayRender } from "remotion";
+import { asset } from "./assets";
 
 /** Inter (SIL OFL 1.1) + JetBrains Mono, bundled locally so renders never depend on the network. */
 const FACES: Array<[family: string, file: string, weight: string]> = [
@@ -17,7 +18,7 @@ export const ensureFonts = () => {
   const handle = delayRender("Loading bundled fonts");
   Promise.all(
     FACES.map(([family, file, weight]) => {
-      const face = new FontFace(family, `url(${staticFile(file)})`, { weight, style: "normal" });
+      const face = new FontFace(family, `url(${asset(file)})`, { weight, style: "normal" });
       return face.load().then((f) => (document.fonts as unknown as { add: (f: FontFace) => void }).add(f));
     }),
   )

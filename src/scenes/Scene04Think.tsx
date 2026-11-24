@@ -5,9 +5,9 @@ import { clamp, ease, lerp, prog, springIn, typed } from "../lib/anim";
 import { Glass } from "../components/Glass";
 import { KineticText } from "../components/KineticText";
 import { PromptBar } from "../components/PromptBar";
+import { useCopy } from "../copy";
 import { IconCheck, IconSheet, IconSpark } from "../components/Icons";
 
-const PROMPT = "Analyze this sales data and highlight key insights.";
 const DATA = [
   { m: "Apr", rev: 310, units: "4,120", region: "NA" },
   { m: "May", rev: 345, units: "4,480", region: "EU" },
@@ -35,6 +35,8 @@ const REGIONS = [
 /** 00:15–00:21 — "Turn complexity into clarity." */
 export const Scene04Think: React.FC = () => {
   const f = useCurrentFrame();
+  const copy = useCopy();
+  const PROMPT = copy.thinkPrompt;
   const fadeIn = prog(f, 0, 22);
 
   // file fly-in on an arc into the composer
@@ -70,7 +72,7 @@ export const Scene04Think: React.FC = () => {
   return (
     <AbsoluteFill style={{ opacity: fadeIn }}>
       <div style={{ position: "absolute", top: 64, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: others }}>
-        <KineticText text="Turn complexity into clarity." frame={f} start={12} stagger={2.4} fontSize={60} weight={650} gradient />
+        <KineticText text={copy.thinkHeadline} frame={f} start={12} stagger={2.4} fontSize={60} weight={650} gradient />
       </div>
 
       {/* LEFT: table that morphs into a chart */}
