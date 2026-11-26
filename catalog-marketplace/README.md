@@ -9,6 +9,7 @@ is redrawn or mocked up.
 | File | What it is |
 | --- | --- |
 | `out/racknap-easy-catalog-marketplace-4k.mp4` | Master: H.264, 4K UHD, 30 fps, with the music and sound-effects bed |
+| `out/racknap-easy-catalog-marketplace-1080p.mp4` | 1920×1080 web and review copy, with audio |
 | `out/racknap-easy-catalog-marketplace-4k-silent.mp4` | The same picture with no audio, for adding a licensed track or voiceover |
 | `out/sfx_music.wav` | The synthesised music and SFX bed on its own (48 kHz stereo) |
 | `composition/index.html` | The animation: camera, cursor, UI states and headlines, driven by `seek(t)` |
