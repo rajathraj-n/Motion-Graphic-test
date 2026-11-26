@@ -80,3 +80,9 @@ ffmpeg -i out/racknap-easy-catalog-marketplace-4k.mp4 -i out/sfx_music.wav \
 
 To watch it live in a browser, serve the `catalog-marketplace/` folder and open
 `composition/index.html?play`. Fonts: Inter and Inter Display must be installed.
+
+## After Effects (editable project)
+
+`out/RackNap_Catalog_Marketplace_AE.zip` contains `RackNap_Catalog_Marketplace.jsx`
+and its assets. Run the script in After Effects to build the project with
+live text, the 3D camera, cursor and card-state layers. See `ae/README.md`.
