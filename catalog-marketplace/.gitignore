@@ -2,3 +2,4 @@ node_modules/
 .frames/
 out/stills/
 out/preview-partial.mp4
+ae/v2/data.json

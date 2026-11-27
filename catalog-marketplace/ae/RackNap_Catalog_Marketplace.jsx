@@ -84,7 +84,11 @@ function applyKeys(p, ks) {
             inE[i + 1][d] = new KeyframeEase((1 - bz[3]) / (1 - bz[2]) * dv / dt, clampInf((1 - bz[2]) * 100));
         }
     }
-    for (i = 0; i < n; i++) { try { p.setTemporalEaseAtKey(idx[i], inE[i], outE[i]); } catch (err) {} }
+    for (i = 0; i < n; i++) {
+        var bzIn = (i > 0) && (R.ease[ks[i - 1].e] !== undefined), bzOut = (i < n - 1) && (R.ease[ks[i].e] !== undefined);
+        if (!bzIn && !bzOut) continue; // linear/hold on both sides: leave AE's interpolation alone
+        try { p.setTemporalEaseAtKey(idx[i], inE[i], outE[i]); } catch (err) {}
+    }
     if (spatial) {
         for (i = 0; i < n; i++) {
             var z = []; for (d = 0; d < dims; d++) z.push(0);
@@ -157,7 +161,7 @@ function buildComp(c) {
         if (s.collapse) { try { lyr.collapseTransformation = true; } catch (e) {} }
         if (s.motionBlur) { try { lyr.motionBlur = true; } catch (e) {} }
         if (s.guide) lyr.guideLayer = true;
-        if (s.type !== "camera" && s.type !== "audio") {
+        if (s.type !== "camera" && s.type !== "audio" && !R.localParenting) {
             if (s.anchor) { var pp = tprop(lyr, "anchorPoint"); pp.setValue(fit(pp, s.anchor)); }
             if (s.position) { var pp = tprop(lyr, "position"); pp.setValue(fit(pp, s.position)); }
             if (s.fitWidth) { var k = s.fitWidth / lyr.source.width * 100; var ps = tprop(lyr, "scale"); ps.setValue(fit(ps, [k, k])); }
@@ -169,7 +173,27 @@ function buildComp(c) {
         s._layer = lyr; byName[s.name] = lyr;
     }
     // 2) parenting (before any keyframes so nothing jumps)
-    for (i = 0; i < specs.length; i++) if (specs[i].parent) specs[i]._layer.parent = byName[specs[i].parent];
+    if (R.localParenting) {
+        // parents start at an identity transform so children keep their values,
+        // then every static value is set in its parent's space
+        for (i = 0; i < specs.length; i++) if (specs[i].parent) {
+            var pl = byName[specs[i].parent];
+            tprop(pl, "anchorPoint").setValue(fit(tprop(pl, "anchorPoint"), [0, 0, 0]));
+            tprop(pl, "position").setValue(fit(tprop(pl, "position"), [0, 0, 0]));
+            tprop(pl, "scale").setValue(fit(tprop(pl, "scale"), [100, 100, 100]));
+        }
+        for (i = 0; i < specs.length; i++) if (specs[i].parent) specs[i]._layer.parent = byName[specs[i].parent];
+        for (i = 0; i < specs.length; i++) {
+            s = specs[i]; lyr = s._layer;
+            if (s.type === "camera" || s.type === "audio") continue;
+            if (s.anchor) { var pa = tprop(lyr, "anchorPoint"); pa.setValue(fit(pa, s.anchor)); }
+            if (s.position) { var pq = tprop(lyr, "position"); pq.setValue(fit(pq, s.position)); }
+            if (s.fitWidth) { var kk = s.fitWidth / lyr.source.width * 100; var pz = tprop(lyr, "scale"); pz.setValue(fit(pz, [kk, kk])); }
+            if (s.opacity !== undefined) tprop(lyr, "opacity").setValue(s.opacity);
+        }
+    } else {
+        for (i = 0; i < specs.length; i++) if (specs[i].parent) specs[i]._layer.parent = byName[specs[i].parent];
+    }
     // 3) keyframes
     for (i = 0; i < specs.length; i++) {
         s = specs[i];
@@ -180,6 +204,11 @@ function buildComp(c) {
     for (i = 0; i < specs.length; i++) {
         s = specs[i];
         if (s.expressions) for (var ek in s.expressions) if (s.expressions.hasOwnProperty(ek)) tprop(s._layer, ek).expression = s.expressions[ek];
+    }
+    // 4b) text expressions (e.g. count-up numbers)
+    for (i = 0; i < specs.length; i++) {
+        s = specs[i];
+        if (s.textExpression) s._layer.property("ADBE Text Properties").property("ADBE Text Document").expression = s.textExpression;
     }
     // 5) track mattes (matte sits directly above its text layer)
     for (i = 0; i < specs.length; i++) {
