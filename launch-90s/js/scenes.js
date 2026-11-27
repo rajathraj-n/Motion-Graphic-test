@@ -74,8 +74,8 @@ CAM=[
   // profit, then pull back
   {t:75.8, ...FRAME, s:0.80, rx:3, ry:-6, e:E.inOut},
   {t:78.4, ax:1060,ay:620,fx:900,fy:560,s:0.90,rx:2,ry:6, e:E.smooth},
-  {t:82.2, ax:960,ay:540,fx:800,fy:500,fz:0,s:0.34,rx:14,ry:-14, e:E.cam},
-  {t:84.4, ax:960,ay:540,fx:800,fy:500,fz:0,s:0.40,rx:8,ry:10, e:E.smooth},
+  {t:81.6, ax:960,ay:560,fx:800,fy:500,fz:0,s:0.40,rx:14,ry:-14, e:E.cam},
+  {t:84.4, ax:960,ay:550,fx:800,fy:500,fz:0,s:0.46,rx:8,ry:10, e:E.smooth},
   {t:86.0, ax:960,ay:540,fx:800,fy:500,fz:0,s:0.30,rx:4,ry:0, e:E.inOut},
   {t:90.0, ax:960,ay:540,fx:800,fy:500,fz:0,s:0.30,rx:4,ry:0, e:E.smooth},
 ];
@@ -154,7 +154,7 @@ scene({render(t){
   s1.style.opacity=(sw>0&&sw<1)?Math.sin(Math.PI*sw).toFixed(3):0; s1.style.transform=`translate3d(${lerp(-600,2200,E.inOut(sw))}px,0,0)`;
   s2.style.opacity=(sw>0&&sw<1)?(0.8*Math.sin(Math.PI*sw)).toFixed(3):0; s2.style.transform=`translate3d(${lerp(-500,2300,E.inOut(sw))}px,0,0)`;
   if(!vis) return;
-  const m=ease(t,B.logo,B.logo+0.85,E.expo), out=ease(t,B.logoOut,B.logoOut+0.55,E.in);
+  const m=ease(t,B.logo,B.logo+0.85,E.expo), out=ease(t,B.logoOut-0.1,B.logoOut+0.25,E.in);
   const img=logoR.querySelector('img');
   img.style.clipPath=`inset(0 ${((1-m)*100).toFixed(2)}% 0 0)`;
   img.style.transform=`scale(${(1.08-0.08*sp(t,B.logo,1.2,5,8)+out*0.06).toFixed(4)})`;
@@ -179,7 +179,7 @@ const RP_MAX=1200;
 const subKPI=[$('#sb-k1 [data-v]'),$('#sb-k2 [data-v]'),$('#sb-k3 [data-v]'),$('#sb-k4 [data-v]')];
 const ovKPI=[$('#ov-k1 [data-v]'),$('#ov-k2 [data-v]'),$('#ov-k3 [data-v]'),$('#ov-k4 [data-v]')];
 const rpKPI=[$('#rp-k1 [data-v]'),$('#rp-k2 [data-v]'),$('#rp-k3 [data-v]'),$('#rp-k4 [data-v]')];
-const appAppear=t=>sp(t,B.app,1.3,4.2,8);
+const appAppear=t=>sp(t,B.app+0.05,1.3,4.2,8);
 scene({render(t){
   const a=appAppear(t);
   // which scenes push the product frame into the background
@@ -187,7 +187,7 @@ scene({render(t){
                       ease(t,B.build-0.4,B.build+0.5,E.inOut)*(1-ease(t,B.quote-0.6,B.quote+0.2,E.inOut)));
   const fin=ease(t,B.fin+0.6,B.fin+1.6,E.inOut);
   const vis=t>=B.app&&fin<1; show($('#appwrap'),vis); if(!vis) return;
-  const z=-520*back, o=Math.min(1,a*1.5)*(1-0.6*back)*(1-fin);
+  const z=-760*back, o=Math.min(1,a*1.5)*(1-0.84*back)*(1-fin);
   $('#appwrap').style.transform=tf(0,lerp(80,0,a),z,0,0,0,lerp(0.88,1,a));
   $('#appwrap').style.opacity=o.toFixed(3);
   app.style.clipPath= a<1?`inset(${((1-a)*48).toFixed(2)}% ${((1-a)*48).toFixed(2)}% ${((1-a)*48).toFixed(2)}% ${((1-a)*48).toFixed(2)}% round 16px)`:'';
@@ -343,7 +343,7 @@ scene({render(t){
    S6 — storefront builder (concept) (34–40)
    ====================================================================== */
 const hlBuild=headline('hl-build','STOREFRONT BUILDER','Drag. Drop. <em>Publish.</em>');
-const BW=1360,BH=860;
+const BW=1360,BH=640;
 const builder=add(F,`<div class="fp ui" style="width:${BW}px;height:${BH}px;overflow:hidden;display:grid;grid-template-rows:56px 1fr">
   <div style="display:flex;align-items:center;gap:14px;padding:0 20px;border-bottom:1px solid var(--line)"><img src="assets/logo.png" style="width:110px"><span style="color:var(--mut2)">/</span><b style="font-size:13px">Storefront</b><span class="pill ok"><i></i>Draft</span>
     <div style="margin-left:auto;display:flex;gap:6px;background:#F3F4F6;border-radius:9px;padding:4px" id="dev">${['Desktop','Tablet','Mobile'].map((d,i)=>`<span class="devb" data-dev="${i}" style="padding:7px 12px;border-radius:7px;font:600 11px Inter;color:var(--mut)">${d}</span>`).join('')}</div>
@@ -392,7 +392,7 @@ scene({render(t){
   const vis=t>=B.build-0.5&&t<B.quote+0.5; show(builder,vis); show(ghost,false); if(!vis) return;
   const pin=sp(t,B.build-0.4,1.1,4.4,9), out=ease(t,B.quote-0.5,B.quote+0.3,E.in);
   place(builder,builderPos.x+out*900,builderPos.y+(1-pin)*120,builderPos.z-(1-pin)*500+out*200,(1-pin)*16,(1-pin)*-12+out*-20,0,1); op(builder,Math.min(1,pin*1.4)*(1-out));
-  const {w,p1,p2}=canvasLayout(t); cv.style.width=w+'px'; cv.style.marginLeft=(-w/2)+'px'; cv.style.height='780px';
+  const {w,p1,p2}=canvasLayout(t); cv.style.width=w+'px'; cv.style.marginLeft=(-w/2)+'px'; cv.style.height='560px';
   $$('#dev .devb').forEach((b,i)=>b.classList.toggle('on',i===(t>=BLD.mob?2:t>=BLD.tab?1:0)));
   // blocks drop in with springs
   const hb=sp(t,BLD.d1,0.8,5,11), gb=sp(t,BLD.d2,0.8,5,11), cb=sp(t,BLD.d3,0.8,5,11);
@@ -571,7 +571,7 @@ scene({render(t){
   const pin=sp(t,B.inv,1.0,4.6,9);
   const toRec=ease(t,B.rec-0.2,B.rec+0.8,E.expo); // shrinks to the side as reconciliation opens
   place(invDoc,lerp(IX,1250,toRec),IY+(1-pin)*60,lerp(IZ-(1-pin)*400,60,toRec),(1-pin)*16,lerp(-6,-18,toRec),0,lerp(1,0.6,toRec)); invDoc.style.transformOrigin='0 0';
-  op(invDoc,Math.min(1,pin*1.5)*(1-ease(t,B.rec+0.6,B.rec+1.1)));
+  op(invDoc,Math.min(1,pin*1.5)*(1-ease(t,B.rec-0.2,B.rec+0.25)));
   // subscription rows lift out of the table and become invoice lines
   INV_HARBOR_NEW.lines.forEach((l,i)=>{ const st=IV.fly+i*0.25, en=IV.flyEnd+i*0.25; const il=$('#il'+i);
     il.style.opacity=t<en?0:1;
@@ -668,9 +668,9 @@ scene({render(t){
     const path=$('#gg'); const L=path.__len||(path.__len=path.getTotalLength()); const frac=mg/40*ease(t,B.prof+0.7,B.prof+1.6,E.out);
     path.style.strokeDasharray=`${(L*frac).toFixed(2)} ${L}`; $('#gg-t').textContent=mg.toFixed(1)+'%'; countTo($('#gg-p'),M_START.profit,M_FIXED.profit,g); }
   // ecosystem: every module around the central dashboard
-  const ev=t>=B.prof+3.6&&t<B.fin+1.8; show(ecoWrap,ev); if(!ev) return;
+  const ev=t>=B.prof+4.5&&t<B.fin+1.8; show(ecoWrap,ev); if(!ev) return;
   const fin=ease(t,B.fin-0.2,B.fin+1.4,E.inOut); // finale: converge into the centre
-  eco.forEach((e,i)=>{ const st=B.prof+3.8+i*0.12, pin=sp(t,st,1.0,4.4,9);
+  eco.forEach((e,i)=>{ const st=B.prof+4.6+i*0.1, pin=sp(t,st,1.0,4.4,9);
     const orbit=(t-B.prof-3.6)*0.05*(1-fin*0.3);
     const a=e.a+orbit; const rx=lerp(1450,700,fin), ry=lerp(930,420,fin);
     const x=800+Math.cos(a)*rx, y=500+Math.sin(a)*ry;
