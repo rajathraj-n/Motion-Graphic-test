@@ -1,0 +1,4 @@
+node_modules/
+.frames/
+out/stills/
+audio/build/

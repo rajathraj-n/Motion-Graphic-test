@@ -1,0 +1,219 @@
+{
+ "before": {
+  "m": {
+   "revenue": 1660,
+   "cost": 1314,
+   "value": 1720,
+   "profit": 346,
+   "margin": 20.843373493975903
+  },
+  "iss": [
+   {
+    "id": "SUB-1001",
+    "diff": 4,
+    "value": 60
+   }
+  ]
+ },
+ "qv": {
+  "total": "$840",
+  "margin": "21.4%"
+ },
+ "q": {
+  "id": "Q-1025",
+  "customer": "harborstone",
+  "status": "Draft",
+  "lines": [
+   {
+    "product": "m365-premium",
+    "qty": 30,
+    "price": 28,
+    "cost": 22
+   }
+  ],
+  "created": "Oct 28, 2026"
+ },
+ "o": {
+  "id": "ORD-1026",
+  "customer": "harborstone",
+  "quote": "Q-1025",
+  "lines": [
+   {
+    "product": "m365-premium",
+    "qty": 30,
+    "price": 28,
+    "cost": 22
+   }
+  ],
+  "status": "Pending"
+ },
+ "subs": [
+  {
+   "id": "SUB-1027",
+   "customer": "harborstone",
+   "product": "m365-premium",
+   "qty": 30,
+   "supplierQty": 30,
+   "price": 28,
+   "cost": 22,
+   "status": "Active",
+   "renewal": "Nov 28, 2026",
+   "order": "ORD-1026"
+  },
+  {
+   "id": "SUB-1001",
+   "customer": "cedarline",
+   "product": "m365-standard",
+   "qty": 52,
+   "supplierQty": 52,
+   "price": 15,
+   "cost": 12,
+   "status": "Active",
+   "renewal": "Nov 30, 2026"
+  },
+  {
+   "id": "SUB-1002",
+   "customer": "solace",
+   "product": "m365-basic",
+   "qty": 80,
+   "supplierQty": 80,
+   "price": 8,
+   "cost": 6,
+   "status": "Active",
+   "renewal": "Nov 15, 2026"
+  },
+  {
+   "id": "SUB-1003",
+   "customer": "harborstone",
+   "product": "acronis-backup",
+   "qty": 30,
+   "supplierQty": 30,
+   "price": 10,
+   "cost": 7,
+   "status": "Active",
+   "renewal": "Nov 30, 2026"
+  }
+ ],
+ "inv": [
+  {
+   "id": "INV-2601",
+   "customer": "cedarline",
+   "status": "Draft",
+   "period": "Oct 2026",
+   "lines": [
+    {
+     "subscription": "SUB-1001",
+     "product": "m365-standard",
+     "qty": 48,
+     "price": 15,
+     "cost": 12
+    }
+   ]
+  },
+  {
+   "id": "INV-2602",
+   "customer": "solace",
+   "status": "Draft",
+   "period": "Oct 2026",
+   "lines": [
+    {
+     "subscription": "SUB-1002",
+     "product": "m365-basic",
+     "qty": 80,
+     "price": 8,
+     "cost": 6
+    }
+   ]
+  },
+  {
+   "id": "INV-2603",
+   "customer": "harborstone",
+   "status": "Draft",
+   "period": "Oct 2026",
+   "lines": [
+    {
+     "subscription": "SUB-1027",
+     "product": "m365-premium",
+     "qty": 30,
+     "price": 28,
+     "cost": 22
+    },
+    {
+     "subscription": "SUB-1003",
+     "product": "acronis-backup",
+     "qty": 30,
+     "price": 10,
+     "cost": 7
+    }
+   ]
+  }
+ ],
+ "after": {
+  "m": {
+   "revenue": 2500,
+   "cost": 1974,
+   "value": 2560,
+   "profit": 526,
+   "margin": 21.04
+  },
+  "iss": [
+   {
+    "id": "SUB-1001",
+    "diff": 4,
+    "value": 60
+   }
+  ],
+  "per": [
+   {
+    "c": "Cedarline Solutions",
+    "revenue": 720,
+    "cost": 624,
+    "value": 780,
+    "profit": 96,
+    "margin": 13.333333333333334
+   },
+   {
+    "c": "Solace Digital",
+    "revenue": 640,
+    "cost": 480,
+    "value": 640,
+    "profit": 160,
+    "margin": 25
+   },
+   {
+    "c": "Harborstone Systems",
+    "revenue": 1140,
+    "cost": 870,
+    "value": 1140,
+    "profit": 270,
+    "margin": 23.684210526315788
+   }
+  ],
+  "audit": [
+   {
+    "text": "Sample draft INV-2603 generated from billable sample subscriptions.",
+    "detail": "Simulated action · 11:13 AM"
+   },
+   {
+    "text": "Order ORD-1026 fulfilled. 1 sample subscription(s) created.",
+    "detail": "Simulated action · 11:13 AM"
+   },
+   {
+    "text": "Quote Q-1025 accepted. Order ORD-1026 created.",
+    "detail": "Simulated action · 11:13 AM"
+   },
+   {
+    "text": "Draft quote Q-1025 created for Harborstone Systems.",
+    "detail": "Simulated action · 11:13 AM"
+   },
+   {
+    "text": "Supplier, subscription and draft invoice data loaded.",
+    "detail": "Seeded sample workspace · Oct 2026"
+   },
+   {
+    "text": "Quantity mismatch identified for Cedarline Solutions.",
+    "detail": "52 supplier seats · 48 invoiced seats"
+   }
+  ]
+ }
+}
