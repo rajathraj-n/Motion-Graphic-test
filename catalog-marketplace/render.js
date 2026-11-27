@@ -46,7 +46,7 @@ const srv=http.createServer((q,r)=>{const p=path.join(ROOT,decodeURIComponent(q.
   if(!IS_WORKER){ fs.rmSync(FRAMES,{recursive:true,force:true}); fs.mkdirSync(path.join(FRAMES,'sub'),{recursive:true}); fs.mkdirSync(path.join(FRAMES,'out'),{recursive:true}); }
   // Adaptive motion blur: each frame gets enough samples across a 180-degree shutter
   // that no element moves more than ~STEP px (CSS) between samples. Still frames get 1.
-  const NF=DUR*FPS, SH=0.5/FPS, STEP=+arg('step',1.2), MAXN=+arg('maxn',10); const manifest=[]; const t0=Date.now(); let shots=0;
+  const NF=DUR*FPS, SH=+arg('shutter',0.36)/FPS, STEP=+arg('step',1.2), MAXN=+arg('maxn',10); const manifest=[]; const t0=Date.now(); let shots=0;
   const [FA,FB]=IS_WORKER?RANGE.split(':').map(Number):[0,NF];
   for(let f=FA;f<FB;f++){
     const ta=f/FPS;

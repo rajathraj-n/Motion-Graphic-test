@@ -187,7 +187,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 W,H=3840,2160
 a=np.zeros((H,W),np.float32); x=np.arange(W)
-a[:]=np.interp(x,[0,1200,1520,1800,W],[0,0,.5,1,1])
+a[:]=np.interp(x,[0,1080,1240,1400,1560,1720,1880,2040,2160,W],[0,0,.04,.14,.32,.56,.80,.95,1,1])
 img=np.zeros((H,W,4),np.uint8); img[...,:3]=255; img[...,3]=(a*255).astype(np.uint8)
 Image.fromarray(img).save('${OUT}/world_matte_gradient.png')
 s=4; im=Image.new('RGBA',(44*s,44*s),(0,0,0,0)); d=ImageDraw.Draw(im)
