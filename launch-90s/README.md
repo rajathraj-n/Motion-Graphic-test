@@ -6,9 +6,9 @@ so a change to any scene re-renders exactly.
 
 | File | What it is |
 | --- | --- |
-| `out/racknap-easy-launch-90s-4k60.mp4` | Master: H.264, 3840×2160, 60 fps, AAC stereo at −14 LUFS |
+| `out/racknap-easy-launch-90s-4k60-web.mp4` | 4K60 copy for the repo: H.264 at about 8 Mbps, AAC stereo, under GitHub's 100 MB file limit |
 | `out/racknap-easy-launch-90s-1080p60.mp4` | 1920×1080 web copy |
-| `out/racknap-easy-launch-90s-4k60-silent.mp4` | Picture only |
+| `out/racknap-easy-launch-90s-4k60.mp4` (not committed, 169 MB) | Full-quality master: H.264 CRF 14, AAC stereo at about −14.8 LUFS, true peak −1.3 dBTP. Delivered directly; rebuild with the commands below |
 | `out/audio/` | Stems: `vo.wav`, `music.wav`, `sfx.wav`, `mix.wav` |
 | `index.html`, `js/` | The composition: `data.js` (records), `ui.js` (interface), `core.js` (camera, easing, cursor), `scenes.js` (timeline) |
 | `audio/vo.py`, `audio/score.py` | Voice-over generation, plus the original score, sound design and mix |
@@ -52,7 +52,7 @@ so a change to any scene re-renders exactly.
 - **Voice-over:** neural text-to-speech (Piper, voice `en_US-john-medium`, trained on public-domain LibriVox recordings; see `assets/VOICE_MODEL_CARD.txt`). It's a natural-sounding American male placeholder. Replace it with a professional voice talent for the final campaign; the script and timings are in `audio/vo.py`.
 - **Music:** an original 118 BPM score synthesised in `audio/score.py`. It has a tense intro, a beat drop on the logo reveal, energetic feature sections, a build into a breakdown and an uplifting brand chord at the end. There are no third-party samples.
 - **Sound effects:** UI clicks on every cursor press, magnetic snaps, data pulses on counters, chimes when steps complete, whooshes on transitions, and impacts on the logo reveals.
-- **Mix:** the music ducks about 7 dB under the voice. The master is normalised to −14 LUFS, with true peak at or below −1 dBTP.
+- **Mix:** the music ducks about 7 dB under the voice. The master measures about −14.8 LUFS integrated, with true peak at −1.3 dBTP.
 
 ## Rebuilding
 
