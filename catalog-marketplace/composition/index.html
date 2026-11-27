@@ -2,81 +2,104 @@
 <html lang="en-US">
 <head>
 <meta charset="utf-8">
-<title>RackNap Easy — Catalog &amp; Marketplace (15s)</title>
+<title>RackNap Easy — Catalog &amp; Marketplace (15s) v2</title>
 <style>
   :root{
-    --ink:#252b26; --muted:#6f766d; --orange:#ed6b28; --bg:#f1f0eb; --line:#e4e7e0;
+    --cream:#f3f1ea; --sub:#a7b0a2; --orange:#ed6b28; --ink:#1b211c;
   }
-  html,body{margin:0;padding:0;background:var(--bg);overflow:hidden}
-  #stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--bg);
-    font-family:Inter,"Inter Display",sans-serif;color:var(--ink);
+  html,body{margin:0;padding:0;background:var(--ink);overflow:hidden}
+  #stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--ink);
+    font-family:Inter,"Inter Display",sans-serif;color:var(--cream);
     perspective:2600px;perspective-origin:62% 50%}
 
   /* ---------- background ---------- */
   #bg{position:absolute;inset:-80px;will-change:transform}
   #bg .base{position:absolute;inset:0;
     background:
-      radial-gradient(1100px 760px at 78% 18%, rgba(237,107,40,.085), transparent 62%),
-      radial-gradient(900px 700px at 12% 92%, rgba(57,119,71,.05), transparent 60%),
-      linear-gradient(180deg,#f5f4f0 0%,#efeee8 100%)}
-  #bg .grid{position:absolute;inset:0;opacity:.55;
-    background-image:radial-gradient(circle at 1px 1px, rgba(37,43,38,.11) 1px, transparent 1.3px);
+      radial-gradient(1000px 720px at 80% 14%, rgba(237,107,40,.22), transparent 62%),
+      radial-gradient(900px 640px at 14% 92%, rgba(96,132,86,.16), transparent 62%),
+      linear-gradient(160deg,#252d25 0%,#1c231d 55%,#151a16 100%)}
+  #bg .grid{position:absolute;inset:0;opacity:.9;
+    background-image:radial-gradient(circle at 1px 1px, rgba(243,241,234,.085) 1px, transparent 1.3px);
     background-size:34px 34px;
-    -webkit-mask-image:radial-gradient(1200px 800px at 70% 50%, #000 10%, transparent 75%);
-            mask-image:radial-gradient(1200px 800px at 70% 50%, #000 10%, transparent 75%)}
-  #bg .ring{position:absolute;border-radius:50%;border:1px solid rgba(237,107,40,.16)}
-  #floor{position:absolute;left:0;right:0;bottom:0;height:420px;
-    background:linear-gradient(180deg,transparent,rgba(37,43,38,.035));pointer-events:none}
+    -webkit-mask-image:radial-gradient(1200px 800px at 70% 50%, #000 5%, transparent 72%);
+            mask-image:radial-gradient(1200px 800px at 70% 50%, #000 5%, transparent 72%)}
+  #bg .ring{position:absolute;border-radius:50%;border:1px solid rgba(237,107,40,.20)}
+  #glow{position:absolute;left:880px;top:820px;width:1100px;height:260px;border-radius:50%;
+    background:radial-gradient(closest-side, rgba(237,107,40,.16), transparent);filter:blur(10px);pointer-events:none}
 
   /* ---------- camera / browser ---------- */
   #cam{position:absolute;left:0;top:0;width:1600px;height:1046px;transform-origin:0 0;
     transform-style:preserve-3d;will-change:transform}
-  #shadow{position:absolute;left:40px;right:40px;top:80px;bottom:-30px;border-radius:24px;
-    background:rgba(28,33,26,.30);filter:blur(46px);transform:translateZ(-1px)}
+  #shadow{position:absolute;left:30px;right:30px;top:70px;bottom:-40px;border-radius:24px;
+    background:rgba(0,0,0,.62);filter:blur(52px)}
   #win{position:absolute;inset:0;border-radius:14px;overflow:hidden;background:#fff;
-    box-shadow:0 0 0 1px rgba(37,43,38,.10), 0 2px 4px rgba(37,43,38,.05), 0 22px 44px -18px rgba(37,43,38,.22)}
+    box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 30px 60px -20px rgba(0,0,0,.5)}
   #chrome{position:absolute;left:0;top:0;right:0;height:46px;background:#eceee9;
     border-bottom:1px solid #dcdfd8;display:flex;align-items:center}
-  .lights{display:flex;gap:8px;padding:0 18px 0 18px}
+  .lights{display:flex;gap:8px;padding:0 18px}
   .lights i{width:12px;height:12px;border-radius:50%;display:block;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.14)}
   .lights i:nth-child(1){background:#f26a5e}.lights i:nth-child(2){background:#f6bd3f}.lights i:nth-child(3){background:#5fc454}
   .tab{position:relative;align-self:flex-end;height:36px;width:270px;background:#fff;border-radius:10px 10px 0 0;
     display:flex;align-items:center;gap:9px;padding:0 14px;font-size:12px;color:#3a4038;font-weight:500;margin-left:6px}
-  .tab .fav{width:14px;height:14px;border-radius:4px;background:var(--orange);
-    box-shadow:inset 0 0 0 3px #fff, inset 0 0 0 7px var(--orange)}
+  .tab .fav{width:14px;height:14px;border-radius:4px;background:var(--orange);box-shadow:inset 0 0 0 3px #fff, inset 0 0 0 7px var(--orange)}
   .tab .x{margin-left:auto;color:#9aa096;font-size:13px}
   .navbtns{display:flex;gap:14px;margin-left:16px;color:#8d9389;font-size:15px}
   .addr{margin-left:16px;flex:0 1 640px;height:28px;border-radius:14px;background:#fff;border:1px solid #dfe2db;
     display:flex;align-items:center;gap:8px;padding:0 14px;font-size:12.5px;color:#4b5249}
-  .addr svg{flex:none}
   .addr .path{color:#9aa096}
   #frame{position:absolute;left:0;top:46px;width:1600px;height:1000px;border:0;display:block;background:#f7f8f5}
+  #dim{position:absolute;left:0;top:46px;right:0;bottom:0;background:#141914;opacity:0;pointer-events:none}
+  #sheen{position:absolute;top:-10%;bottom:-10%;left:0;width:55%;pointer-events:none;opacity:0;
+    background:linear-gradient(100deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.22) 50%, rgba(255,255,255,0) 70%)}
 
-  /* ---------- cursor (lives in browser space) ---------- */
+  #clones{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
+  .clone{position:absolute;left:0;top:0;transform-origin:50% 50%;will-change:transform,opacity;display:none}
+
   #cursor{position:absolute;left:0;top:0;width:28px;height:28px;transform-origin:4px 3px;pointer-events:none;
-    filter:drop-shadow(0 3px 4px rgba(0,0,0,.22));will-change:transform;z-index:5}
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.28));will-change:transform}
   #cursor svg{position:absolute;left:0;top:0}
 
   /* ---------- editorial layer ---------- */
-  #scrim{position:absolute;left:0;top:0;bottom:0;width:1020px;pointer-events:none;
-    background:linear-gradient(90deg, rgba(241,240,235,.97) 0%, rgba(241,240,235,.95) 52%, rgba(241,240,235,.6) 70%, rgba(241,240,235,0) 86%)}
-  #copy{position:absolute;left:128px;top:0;height:1080px;width:640px;display:flex;flex-direction:column;justify-content:center}
-  .block{position:absolute;left:0;top:50%;transform:translateY(-50%);width:640px}
+  #scrim{position:absolute;left:0;top:0;bottom:0;width:860px;pointer-events:none;
+    background:linear-gradient(90deg, #1d241e 0%, #1c231d 72%, rgba(28,35,29,.82) 80%, rgba(28,35,29,.35) 91%, rgba(28,35,29,0) 100%)}
+  #copy{position:absolute;left:128px;top:0;height:1080px;width:660px}
+  .block{position:absolute;left:0;top:50%;transform:translateY(-50%);width:660px;visibility:hidden}
   .eyebrow{display:flex;align-items:center;gap:14px;font:600 15px/1 Inter;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);margin-bottom:28px}
   .eyebrow .bar{width:44px;height:2px;background:var(--orange);transform-origin:0 50%}
   .eyebrow .lbl{display:block;overflow:hidden}
   .eyebrow .lbl span{display:block}
-  h1.hl{margin:0;font:600 74px/1.04 "Inter Display",Inter;letter-spacing:-.028em;color:var(--ink)}
-  h1.hl .ln{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
+  h1.hl{margin:0;font:600 76px/1.04 "Inter Display",Inter;letter-spacing:-.03em;color:var(--cream)}
+  h1.hl .ln{display:block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em}
   h1.hl .ln span{display:block;will-change:transform}
   h1.hl em{font-style:normal;color:var(--orange)}
-  .sub{margin-top:30px;font:400 25px/1.4 Inter;color:var(--muted);overflow:hidden}
+  .sub{margin-top:30px;font:400 25px/1.4 Inter;color:var(--sub);overflow:hidden}
   .sub span{display:block}
-  .logo{display:block;width:300px;margin:0 0 46px -6px}
-  #hairline{position:absolute;left:128px;bottom:86px;height:1px;width:0;background:rgba(37,43,38,.18)}
+  .logo{display:block;width:310px;margin:0 0 48px -6px}
+  .stats{display:flex;gap:44px;margin-top:40px}
+  .stat{overflow:hidden}
+  .stat > div{display:flex;align-items:baseline;gap:10px}
+  .stat b{font:600 54px/1 "Inter Display";letter-spacing:-.02em;color:var(--cream);font-variant-numeric:tabular-nums;min-width:.6em}
+  .stat span{font:500 16px/1 Inter;letter-spacing:.14em;text-transform:uppercase;color:var(--sub)}
+  .vendors{margin-top:22px;font:400 19px/1.4 Inter;color:var(--sub);overflow:hidden}
+  .vendors span{display:block}
+  .vendors i{font-style:normal;color:var(--orange);padding:0 10px}
+  #hairline{position:absolute;left:128px;bottom:86px;height:1px;width:0;background:rgba(243,241,234,.22)}
 
-  /* grain to avoid banding on large gradients */
-  #grain{position:absolute;inset:0;opacity:.05;pointer-events:none;mix-blend-mode:multiply}
+  /* callouts (screen space, anchored live to the lifted card) */
+  #callouts{position:absolute;inset:0;pointer-events:none}
+  .callout{position:absolute;left:0;top:0}
+  .callout .dot{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--orange);
+    box-shadow:0 0 0 5px rgba(237,107,40,.22)}
+  .callout .line{position:absolute;height:1.5px;background:linear-gradient(90deg,var(--orange),rgba(243,241,234,.65));transform-origin:0 50%}
+  .callout .label{position:absolute;white-space:nowrap}
+  .callout .label .k{display:block;overflow:hidden;font:600 13px/1.2 Inter;letter-spacing:.2em;text-transform:uppercase;color:var(--orange)}
+  .callout .label .v{display:block;overflow:hidden;font:600 27px/1.25 "Inter Display";letter-spacing:-.015em;color:var(--cream);margin-top:6px}
+  .callout .label span{display:block}
+
+  #vignette{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse 85% 85% at 58% 50%, transparent 55%, rgba(0,0,0,.42) 100%)}
+  #grain{position:absolute;inset:0;opacity:.07;pointer-events:none;mix-blend-mode:overlay}
 </style>
 </head>
 <body>
@@ -85,9 +108,9 @@
     <div class="base"></div>
     <div class="grid"></div>
     <div class="ring" style="width:1300px;height:1300px;left:1080px;top:-560px"></div>
-    <div class="ring" style="width:880px;height:880px;left:1290px;top:-350px;border-color:rgba(237,107,40,.10)"></div>
+    <div class="ring" style="width:880px;height:880px;left:1290px;top:-350px;border-color:rgba(237,107,40,.12)"></div>
   </div>
-  <div id="floor"></div>
+  <div id="glow"></div>
 
   <div id="cam">
     <div id="shadow"></div>
@@ -102,10 +125,13 @@
         </div>
       </div>
       <iframe id="frame" scrolling="no"></iframe>
+      <div id="dim"></div>
+      <div id="sheen"></div>
     </div>
+    <div id="clones"></div>
     <div id="cursor">
       <svg id="cur-arrow" width="28" height="28" viewBox="0 0 28 28"><path d="M4 2.5v19.2l5.1-4.6 3.3 7.6 3.4-1.5-3.3-7.4h6.9z" fill="#fff" stroke="#1d211c" stroke-width="1.4" stroke-linejoin="round"/></svg>
-      <svg id="cur-hand" width="28" height="28" viewBox="0 0 28 28" style="opacity:0"><path d="M10.2 3.2c-1 0-1.8.8-1.8 1.8v10.2l-1.5-1.6c-.8-.8-2-.8-2.7-.1-.7.7-.7 1.8 0 2.6l4.6 5.5c1.4 1.7 3.1 2.6 5.3 2.6h2.2c3.4 0 5.7-2.5 5.7-5.9v-5.6c0-1-.8-1.7-1.7-1.7-.5 0-.9.2-1.2.5v-.4c0-1-.8-1.7-1.7-1.7-.5 0-1 .2-1.3.6-.2-.8-.9-1.4-1.7-1.4-.4 0-.8.1-1.1.4V5c0-1-.8-1.8-1.8-1.8z" fill="#fff" stroke="#1d211c" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      <svg id="cur-hand" width="28" height="28" viewBox="0 0 28 28" style="opacity:0"><path d="M10.2 3.2c-1 0-1.8.8-1.8 1.8v10.2l-1.5-1.6c-.8-.8-2-.8-2.7-.1-.7.7-.7 1.8 0 2.6l4.6 5.5c1.4 1.7 3.1 2.6 5.300 2.6h2.2c3.4 0 5.7-2.5 5.7-5.9v-5.6c0-1-.8-1.700-1.700-1.700-.5 0-.9.2-1.2.5v-.4c0-1-.8-1.7-1.7-1.7-.5 0-1 .2-1.3.6-.2-.8-.9-1.4-1.7-1.4-.4 0-.8.1-1.1.4V5c0-1-.8-1.8-1.8-1.8z" fill="#fff" stroke="#1d211c" stroke-width="1.3" stroke-linejoin="round"/></svg>
     </div>
   </div>
 
@@ -127,15 +153,19 @@
     <div class="block" id="b4">
       <div class="eyebrow"><span class="bar"></span><span class="lbl"><span>Marketplace</span></span></div>
       <h1 class="hl"><span class="ln"><span>Discover &amp;</span></span><span class="ln"><span><em>Sell More</em></span></span></h1>
+      <div class="stats" id="stats"></div>
+      <div class="vendors"><span id="vendors"></span></div>
     </div>
     <div class="block" id="b5">
-      <img class="logo" src="../app/assets/racknap-easy.webp" alt="RackNap Easy">
+      <img class="logo" src="../app/assets/racknap-easy-reversed.png" alt="RackNap Easy">
       <h1 class="hl"><span class="ln"><span>Catalog &amp;</span></span><span class="ln"><span>Marketplace</span></span></h1>
       <div class="sub"><span>One Connected Experience.</span></div>
     </div>
   </div>
+  <div id="callouts"></div>
   <div id="hairline"></div>
-  <svg id="grain" width="1920" height="1080"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.4 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  <div id="vignette"></div>
+  <svg id="grain" width="1920" height="1080"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
 </div>
 
 <script>
@@ -146,27 +176,22 @@
 const DURATION = 15;
 const ADDRESS_HOST = 'racknap.com';   // set to the production app host before final delivery
 const ADDRESS_PATH = '/catalog';
-const CHROME_H = 46;                  // browser chrome height (app y-offset inside #cam)
+const CHROME_H = 46;
 
 /* =====================================================================
    EASING + HELPERS
    ===================================================================== */
-function bezier(p1x,p1y,p2x,p2y){ // cubic-bezier(x1,y1,x2,y2) -> f(t)
+function bezier(p1x,p1y,p2x,p2y){
   const cx=3*p1x,bx=3*(p2x-p1x)-cx,ax=1-cx-bx,cy=3*p1y,by=3*(p2y-p1y)-cy,ay=1-cy-by;
-  const sx=t=>((ax*t+bx)*t+cx)*t, sy=t=>((ay*t+by)*t+cy)*t, dx=t=>(3*ax*t+2*bx)*t+cx;
-  return x=>{ if(x<=0)return 0; if(x>=1)return 1; let t=x;
-    for(let i=0;i<8;i++){const e=sx(t)-x; if(Math.abs(e)<1e-6)break; const d=dx(t); if(Math.abs(d)<1e-6)break; t-=e/d;}
-    let lo=0,hi=1; if(Math.abs(sx(t)-x)>1e-4){ t=x; for(let i=0;i<30;i++){const v=sx(t); if(v<x)lo=t; else hi=t; t=(lo+hi)/2;} }
+  const sx=t=>((ax*t+bx)*t+cx)*t, sy=t=>((ay*t+by)*t+cy)*t;
+  return x=>{ if(x<=0)return 0; if(x>=1)return 1; let lo=0,hi=1,t=x;
+    for(let i=0;i<40;i++){ const v=sx(t); if(Math.abs(v-x)<1e-7)break; if(v<x)lo=t; else hi=t; t=(lo+hi)/2; }
     return sy(t); };
 }
 const E = {
-  inOut: bezier(.65,0,.35,1),
-  smooth: bezier(.45,0,.2,1),
-  out: bezier(.16,1,.3,1),      // expo-ish out
-  outSoft: bezier(.22,1,.36,1),
-  in: bezier(.55,0,.75,.06),
-  cam: bezier(.6,.02,.22,1),
-  linear: x=>x,
+  inOut: bezier(.65,0,.35,1), smooth: bezier(.45,0,.2,1), out: bezier(.16,1,.3,1),
+  outSoft: bezier(.22,1,.36,1), in: bezier(.55,0,.75,.06), cam: bezier(.6,.02,.22,1),
+  fly: bezier(.7,0,.12,1), pop: bezier(.34,0,.12,1),
 };
 const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
 const lerp=(a,b,p)=>a+(b-a)*p;
@@ -177,10 +202,7 @@ const ease=(t,a,b,fn=E.inOut)=>fn(prog(t,a,b));
    APP (real Catalog & marketplace page inside the browser frame)
    ===================================================================== */
 const frame=document.getElementById('frame');
-let doc, G={}; // G = geometry, measured from the live DOM
-
-// Prototype-only wording is removed from the frame; product names, vendors,
-// categories, units and every USD amount are left exactly as the app renders them.
+let doc, G={}, appCSS='';
 const TEXT_FIXES=[
   ['United States · Sample workspace','United States'],
   ['A sample mix of cloud products and your own recurring services.','A mix of cloud products and your own recurring services.'],
@@ -192,24 +214,24 @@ const TEXT_FIXES=[
   ['in your sample quote','in your quote'],
   [/^1 units$/,'1 unit'],
 ];
-const HIDE_CSS=`
-  .simulation-banner,.demo-tag,.environment,.help-anchor,.simple-note,.workspace-footer,.sidebar-bottom,#toast,.guide-card,.journey{display:none!important}
-  .app-shell{min-height:100vh!important}
-  .sidebar{height:100vh!important}
-  html,body{scrollbar-width:none;overflow:hidden!important}
-  ::-webkit-scrollbar{display:none}
-  *,*:before,*:after{transition:none!important;animation:none!important;caret-color:transparent}
+const STATE_CSS=`
   .product-card{will-change:transform,opacity;position:relative}
   .product-card.is-hover{border-color:#f2d3b6!important}
   .btn.is-hover{background:#f5f7f0}
   .btn.is-press{background:#eef1e8;transform:scale(.985)}
-  .btn.primary.is-hover{background:#d95d1c}
-  .filter-chip{cursor:pointer}
   .filter-chip.is-hover{border-color:#d6dccb;color:#7b8279}
   .filter-chip.is-press{transform:scale(.97)}
   .cart-bar .btn:not(.primary){background:transparent;color:#e6eddd;border-color:#58674a}
-  .cart-bar{will-change:transform,opacity}
+  *,*:before,*:after{transition:none!important;animation:none!important;caret-color:transparent}
 `;
+const HIDE_CSS=`
+  .simulation-banner,.demo-tag,.environment,.help-anchor,.simple-note,.workspace-footer,.sidebar-bottom,#toast{display:none!important}
+  .app-shell{min-height:100vh!important}
+  .sidebar{height:100vh!important}
+  html,body{scrollbar-width:none;overflow:hidden!important}
+  ::-webkit-scrollbar{display:none}
+  .cart-bar{will-change:transform,opacity}
+`+STATE_CSS;
 
 function sanitize(root){
   const w=root.createTreeWalker(root.body,NodeFilter.SHOW_TEXT);let n;
@@ -221,47 +243,68 @@ function sanitize(root){
 }
 function forbiddenVisibleText(){
   const bad=[]; const re=/\b(sample|demo|illustrative|simulat\w*|fictional|concept)\b/i;
-  const w=doc.createTreeWalker(doc.body,NodeFilter.SHOW_TEXT);let n;
-  while((n=w.nextNode())){
-    if(!n.nodeValue.trim()||!re.test(n.nodeValue))continue;
-    const el=n.parentElement; if(!el)continue;
-    if(el.closest('script,style,dialog'))continue;
-    const r=el.getBoundingClientRect(), cs=doc.defaultView.getComputedStyle(el);
-    if(r.width&&r.height&&cs.visibility!=='hidden'&&el.offsetParent!==null) bad.push(n.nodeValue.trim());
-  }
+  const scan=(root,win)=>{ const w=root.ownerDocument?root.ownerDocument.createTreeWalker(root,NodeFilter.SHOW_TEXT):root.createTreeWalker(root,NodeFilter.SHOW_TEXT); let n;
+    while((n=w.nextNode())){ if(!n.nodeValue.trim()||!re.test(n.nodeValue))continue; const el=n.parentElement; if(!el||el.closest('script,style,dialog'))continue;
+      const r=el.getBoundingClientRect(); if(r.width&&r.height&&el.offsetParent!==null&&win.getComputedStyle(el).visibility!=='hidden') bad.push(n.nodeValue.trim()); } };
+  scan(doc.body,doc.defaultView);
+  clones.forEach(c=>scan(c.root,window));
+  scan(document.getElementById('copy'),window);
   return bad;
 }
 
 const $=s=>doc.querySelector(s), $$=s=>[...doc.querySelectorAll(s)];
-let cards, chips, cart, premium, premiumBtn, mcs, chipAll, chipProd;
+let cards, chips, cart, premium, premiumBtn, backup, chipAll, chipProd, clones=[];
 function rectB(el){ const r=el.getBoundingClientRect(); return {x:r.left,y:r.top+CHROME_H,w:r.width,h:r.height,cx:r.left+r.width/2,cy:r.top+CHROME_H+r.height/2}; }
+
+/* exact visual copies of real product cards, rendered with the app's own stylesheet in a shadow root */
+function makeClone(i){
+  const src=cards[i], r=G.cards[i];
+  const host=document.createElement('div'); host.className='clone';
+  host.style.width=r.w+'px'; host.style.height=r.h+'px';
+  const root=host.attachShadow({mode:'open'});
+  const html=src.outerHTML.replace(/\shidden(="")?/,'').replace(/\sstyle="[^"]*"/,'');
+  root.innerHTML=`<style>${appCSS}
+    :host{display:block;font:13px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+    .product-card{width:100%;height:100%;margin:0;box-sizing:border-box}
+    ${STATE_CSS}</style>${html}`;
+  document.getElementById('clones').appendChild(host);
+  const card=root.querySelector('.product-card');
+  return {i,host,root,card,btn:card.querySelector('[data-action="add-cart"]'),rect:r};
+}
 
 async function bootApp(){
   try{ localStorage.removeItem('racknap-easy-us-simulation-v1'); }catch(e){}
+  appCSS=(await (await fetch('../app/demo.css')).text()).replace(/:root/g,':host');
   await new Promise(res=>{ frame.onload=res; frame.src='../app/demo.html#catalog'; });
   doc=frame.contentDocument;
   await doc.fonts.ready;
   const st=doc.createElement('style'); st.textContent=HIDE_CSS; doc.head.appendChild(st);
-  // Make the real "Add to quote" action happen once so the genuine cart bar
-  // markup and button label exist; visibility is then driven by the timeline.
   doc.querySelector('.product-card:nth-child(3) [data-action="add-cart"]').click();
   await new Promise(r=>setTimeout(r,60));
   sanitize(doc);
   cards=$$('.product-card'); chips=$$('.filter-chip'); cart=$('.cart-bar');
   premium=cards[2]; premiumBtn=premium.querySelector('[data-action="add-cart"]');
-  mcs=cards[3]; chipAll=chips[0]; chipProd=chips.find(c=>c.dataset.category==='Productivity');
+  backup=cards[3]; chipAll=chips[0]; chipProd=chips.find(c=>c.dataset.category==='Productivity');
   premiumBtn.dataset.labelAfter=premiumBtn.textContent; premiumBtn.dataset.labelBefore='Add to quote +';
-  // geometry — all products, with cart
+  premiumBtn.textContent=premiumBtn.dataset.labelBefore;
   setFilter('All products');
   G.cards=cards.map(rectB); G.cartAll=rectB(cart);
-  G.chipAll=rectB(chipAll); G.chipProd=rectB(chipProd); G.search=rectB($('.search-box'));
-  G.premiumBtn=rectB(premiumBtn); G.premiumPrice=rectB(premium.querySelector('.product-price'));
-  G.heading=rectB($('.page-heading'));
+  G.chipAll=rectB(chipAll); G.chipProd=rectB(chipProd);
+  G.premiumBtn=rectB(premiumBtn);
   setFilter('Productivity'); G.cartProd=rectB(cart); setFilter('All products');
+  clones=cards.map((c,i)=>makeClone(i));
+  clones[2].btn.dataset.labelAfter=premiumBtn.dataset.labelAfter;
+  // stats come from the page itself — nothing typed in by hand
+  const vendors=[...new Set(cards.map(c=>c.querySelector('.product-vendor').textContent.split('/')[0].trim()))];
+  const cats=[...new Set(cards.map(c=>c.dataset.category))];
+  STATS=[[cards.length,'products'],[cats.length,'categories'],[vendors.length,'sources']];
+  document.getElementById('stats').innerHTML=STATS.map(([n,l])=>`<div class="stat"><div><b data-n="${n}">0</b><span>${l}</span></div></div>`).join('');
+  document.getElementById('vendors').innerHTML=vendors.map(v=>v.replace(/</g,'&lt;')).join('<i>·</i>');
   document.getElementById('addr-host').textContent=ADDRESS_HOST;
   document.getElementById('addr-path').textContent=ADDRESS_PATH;
   buildTimeline();
 }
+let STATS=[];
 let curFilter=null;
 function setFilter(cat){
   if(cat===curFilter)return; curFilter=cat;
@@ -272,78 +315,249 @@ function setFilter(cat){
 /* =====================================================================
    TIMELINE
    ===================================================================== */
-let CAM=[], CURSOR=[];
-const T={ // key beats (seconds)
-  cardsIn:2.15,
+const T={
+  land0:2.02, landStep:0.075,    // opening: cards gather into the grid
   clickProd:4.62,
-  hoverPremium:6.35,
-  clickAdd:7.55,
-  cartIn:7.68,
-  clickAll:9.72,
-  hoverMcs:11.05,
-  cursorOut:12.25,
+  hoverPremium:6.30, popIn:6.42, popInEnd:7.10, clickAdd:7.55, cartIn:7.72, popOut:8.02, popOutEnd:8.62,
+  clickAll:9.72, hoverBackup:11.05, cursorOut:12.25,
+  sweep:12.95,
 };
+const SCATTER=[ // opening offsets from each card's slot (px, deg)
+  {x:-430,y:-250,z:420, rx:14, ry:-24,rz:-7},
+  {x:-140,y:-430,z:140, rx:20, ry: 10,rz: 5},
+  {x: 270,y:-300,z:560, rx:-12,ry: 26,rz: 6},
+  {x: 540,y:-120,z:280, rx: 9, ry: 30,rz:-8},
+  {x:-380,y: 340,z:330, rx:-18,ry:-20,rz: 6},
+  {x: 320,y: 400,z:680, rx:-14,ry: 22,rz:-5},
+];
+let CAM=[], CURSOR=[];
+const landT=i=>T.land0+i*T.landStep;
+const enterT=i=>T.clickAll+.16+(i-3)*.09; // re-entry start for cards 4–6
+
 function buildTimeline(){
   const c=G.cards, P=c[2];
   const winC={x:800,y:523};
-  // Camera: anchor (ax,ay) on screen, focus (fx,fy) in browser space, scale, rotations (deg)
   CAM=[
-    {t:0.00, ax:1190,ay:760, fx:winC.x,fy:winC.y, s:0.56, rx:24, ry:-26, rz:3.2},
-    {t:2.05, ax:1185,ay:560, fx:winC.x,fy:winC.y, s:0.655,rx:6,  ry:-13, rz:0,  e:E.cam},
+    {t:0.00, ax:1170,ay:570, fx:winC.x,fy:winC.y-10, s:0.57, rx:11, ry:-21, rz:2.4},
+    {t:2.40, ax:1185,ay:560, fx:winC.x,fy:winC.y, s:0.655,rx:5,  ry:-12, rz:0,  e:E.cam},
     {t:3.45, ax:1210,ay:560, fx:c[1].x+40,fy:c[0].y+150, s:0.97, rx:3, ry:-8, rz:0, e:E.inOut},
     {t:4.45, ax:1240,ay:520, fx:G.chipProd.cx-120,fy:G.chipProd.cy+130, s:1.14, rx:2.5, ry:-6.5, rz:0, e:E.inOut},
-    {t:6.05, ax:1220,ay:540, fx:c[1].cx,fy:c[1].cy-30, s:1.10, rx:2, ry:-4, rz:0, e:E.smooth},
-    {t:7.20, ax:1250,ay:560, fx:P.cx,fy:P.cy+40, s:1.72, rx:1.5, ry:-4.5, rz:0, e:E.inOut},
-    {t:7.95, ax:1250,ay:560, fx:P.cx,fy:P.y+P.h-30, s:1.78, rx:1.2, ry:-4, rz:0, e:E.smooth},
-    {t:8.80, ax:1250,ay:560, fx:300+530/0.94,fy:(P.y+G.cartProd.y+G.cartProd.h)/2+20, s:0.94, rx:2, ry:-6, rz:0, e:E.inOut},
+    {t:6.00, ax:1220,ay:540, fx:c[1].cx,fy:c[1].cy-30, s:1.08, rx:2, ry:-4, rz:0, e:E.smooth},
+    {t:7.10, ax:1135,ay:548, fx:P.cx,fy:P.cy, s:1.30, rx:1.5, ry:-4.5, rz:0, e:E.inOut},
+    {t:8.05, ax:1135,ay:548, fx:P.cx,fy:P.cy+6, s:1.34, rx:1.3, ry:-4.2, rz:0, e:E.smooth},
+    {t:8.85, ax:1250,ay:560, fx:300+530/0.94,fy:(P.y+G.cartProd.y+G.cartProd.h)/2+20, s:0.94, rx:2, ry:-6, rz:0, e:E.inOut},
     {t:9.25, ax:1250,ay:560, fx:300+530/0.93,fy:(P.y+G.cartProd.y+G.cartProd.h)/2+10, s:0.93, rx:2.2, ry:-6.5, rz:0, e:E.smooth},
-    {t:9.85, ax:1230,ay:560, fx:c[0].x+420,fy:(c[0].y+c[4].y+c[4].h)/2-30, s:0.88, rx:3, ry:-9, rz:0, e:E.inOut},
-    {t:11.95,ax:1200,ay:555, fx:c[2].cx,fy:(c[0].y+c[4].y+c[4].h)/2-10, s:0.96, rx:2, ry:-5, rz:0, e:E.smooth},
+    {t:9.90, ax:1235,ay:565, fx:c[0].x+430,fy:(c[0].y+c[4].y+c[4].h)/2-30, s:0.86, rx:3, ry:-10, rz:0, e:E.inOut},
+    {t:11.95,ax:1215,ay:555, fx:c[2].cx,fy:(c[0].y+c[4].y+c[4].h)/2-10, s:0.95, rx:2, ry:-5, rz:0, e:E.smooth},
     {t:13.75,ax:1268,ay:556, fx:winC.x,fy:winC.y+8, s:0.71,rx:4, ry:-15, rz:0, e:E.cam},
     {t:15.00,ax:1268,ay:556, fx:winC.x,fy:winC.y+8, s:0.714,rx:4, ry:-15.3,rz:0, e:E.smooth},
   ];
   const prodPt={x:G.chipProd.cx+6,y:G.chipProd.cy+3};
   const allPt={x:G.chipAll.cx+8,y:G.chipAll.cy+3};
-  const premBody={x:P.cx+60,y:P.y+P.h*0.42};
-  const addPt={x:G.premiumBtn.cx+22,y:G.premiumBtn.cy+4};
-  const mcsPt={x:c[3].cx+30,y:c[3].y+c[3].h*0.40};
-  CURSOR=[ // position keys; arc = sideways bow of the path (px)
+  // points on the Premium card are given in card-local px ("pop" space) so the
+  // cursor rides along when the card lifts off the page
+  const premBody={pop:true,x:P.w*0.74,y:P.h*0.40};
+  const addPt={pop:true,x:G.premiumBtn.cx-P.x+22,y:G.premiumBtn.cy-P.y+4};
+  const bkPt={x:c[3].cx+30,y:c[3].y+c[3].h*0.40};
+  CURSOR=[
     {t:3.35, x:c[2].cx+260, y:c[2].y+520, o:0},
     {t:3.70, x:c[2].cx+160, y:c[2].y+330, o:1},
     {t:4.45, ...prodPt, arc:40},
     {t:4.80, ...prodPt},
     {t:5.85, x:c[2].cx+150, y:c[2].y+120, arc:-30},
     {t:T.hoverPremium, ...premBody, arc:20},
-    {t:7.25, ...addPt, arc:-24},
-    {t:8.70, x:addPt.x+6, y:addPt.y+2},
+    {t:6.75, ...premBody, x:premBody.x+4, y:premBody.y+2},
+    {t:7.30, ...addPt, arc:-24},
+    {t:8.70, ...addPt, x:addPt.x+6, y:addPt.y+2},
     {t:9.55, ...allPt, arc:60},
     {t:9.95, ...allPt},
-    {t:T.hoverMcs, ...mcsPt, arc:-50},
-    {t:11.90,x:mcsPt.x+40,y:mcsPt.y+18, arc:10},
-    {t:T.cursorOut,x:mcsPt.x+70,y:mcsPt.y+40,o:0, arc:0},
+    {t:T.hoverBackup, ...bkPt, arc:-50},
+    {t:11.90,x:bkPt.x+40,y:bkPt.y+18, arc:10},
+    {t:T.cursorOut,x:bkPt.x+70,y:bkPt.y+40,o:0, arc:0},
   ];
 }
 
 function camAt(t){
   let a=CAM[0],b=CAM[CAM.length-1];
   if(t<=a.t) return a;
-  for(let i=0;i<CAM.length-1;i++){ if(t>=CAM[i].t&&t<=CAM[i+1].t){a=CAM[i];b=CAM[i+1];break;} }
   if(t>=b.t) return b;
+  for(let i=0;i<CAM.length-1;i++){ if(t>=CAM[i].t&&t<=CAM[i+1].t){a=CAM[i];b=CAM[i+1];break;} }
   const p=(b.e||E.inOut)(prog(t,a.t,b.t)); const o={};
-  for(const k of ['ax','ay','fx','fy','s','rx','ry','rz']) o[k]=lerp(a[k],b[k],p);
-  // scale interpolated in log space for a constant-feeling zoom
+  for(const k of ['ax','ay','fx','fy','rx','ry','rz']) o[k]=lerp(a[k],b[k],p);
   o.s=Math.exp(lerp(Math.log(a.s),Math.log(b.s),p));
   return o;
 }
+
+/* ---------- Premium card lift ("pop") ---------- */
+const POP={z:230, s:0.075, ry:4.5, rx:-1.5};
+function popAmt(t){ return ease(t,T.popIn,T.popInEnd,E.pop)*(1-ease(t,T.popOut,T.popOutEnd,E.inOut)); }
+function liftPremium(t){ return ease(t,T.hoverPremium-.08,T.hoverPremium+.28,E.outSoft)*(1-ease(t,9.2,9.6,E.smooth)); }
+// card-local point -> browser-space 3D point, matching the clone's CSS transform
+function popMap(lx,ly,t){
+  const P=G.cards[2], A=popAmt(t), s=1+POP.s*A, th=POP.ry*A*Math.PI/180, ph=POP.rx*A*Math.PI/180;
+  const dx=lx-P.w/2, dy=ly-P.h/2;
+  // scale -> rotateX -> rotateY (CSS applies right-to-left of "rotateY rotateX scale")
+  let x=dx*s, y=dy*s, z=0;
+  let y2=y*Math.cos(ph)-z*Math.sin(ph), z2=y*Math.sin(ph)+z*Math.cos(ph); y=y2; z=z2;
+  let x2=x*Math.cos(th)+z*Math.sin(th); z2=-x*Math.sin(th)+z*Math.cos(th); x=x2; z=z2;
+  return {x:P.cx+x, y:P.cy-4*liftPremium(t)+y, z:POP.z*A+z};
+}
+
 function cursorAt(t){
-  const K=CURSOR; if(t<=K[0].t) return {...K[0],o:0};
-  if(t>=K[K.length-1].t) return {...K[K.length-1],o:0};
+  const K=CURSOR;
+  const pt=k=>{ if(k.pop){ const m=popMap(k.x,k.y,t); return {x:m.x,y:m.y,z:m.z+6}; } return {x:k.x,y:k.y,z:2}; };
+  if(t<=K[0].t) return {...pt(K[0]),o:0};
+  if(t>=K[K.length-1].t) return {...pt(K[K.length-1]),o:0};
   let i=0; while(i<K.length-1&&!(t>=K[i].t&&t<=K[i+1].t)) i++;
-  const a=K[i],b=K[i+1]; const p=E.smooth(prog(t,a.t,b.t));
-  const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1, bow=(b.arc||0)*Math.sin(Math.PI*p);
-  const x=lerp(a.x,b.x,p)+(-dy/len)*bow, y=lerp(a.y,b.y,p)+(dx/len)*bow;
-  const oa=a.o??1, ob=b.o??1;
-  return {x,y,o:lerp(oa,ob,E.smooth(prog(t,a.t,b.t)))};
+  const a=K[i],b=K[i+1], pa=pt(a), pb=pt(b), p=E.smooth(prog(t,a.t,b.t));
+  const dx=pb.x-pa.x,dy=pb.y-pa.y,len=Math.hypot(dx,dy)||1, bow=(b.arc||0)*Math.sin(Math.PI*p);
+  return {x:lerp(pa.x,pb.x,p)+(-dy/len)*bow, y:lerp(pa.y,pb.y,p)+(dx/len)*bow, z:lerp(pa.z,pb.z,p),
+          o:lerp(a.o??1,b.o??1,p)};
+}
+
+/* ---------- clone poses ---------- */
+function clonePose(i,t){
+  // opening: scattered in depth, then gathering into the grid
+  const L=landT(i);
+  if(t<L){
+    const S=SCATTER[i], st=L-1.15, p=ease(t,st,L,E.fly), k=(1-p)*(1-0.05*Math.min(t,st));
+    const bob=Math.sin(t*1.6+i*1.3)*6*(1-p);
+    return {x:S.x*k, y:S.y*k+bob, z:S.z*k, rx:S.rx*k, ry:S.ry*k, rz:S.rz*k, s:1,
+            o:ease(t,.05+i*.07,.75+i*.07,E.smooth), sh:1-p};
+  }
+  // filter: non-matching cards lift away
+  if(i>=3 && t>=T.clickProd && t<T.clickProd+.55){
+    const p=ease(t,T.clickProd,T.clickProd+.55,E.out);
+    return {x:0,y:-30*p,z:170*p,rx:-10*p,ry:0,rz:0,s:1,o:1-ease(t,T.clickProd,T.clickProd+.42,E.smooth),sh:p};
+  }
+  // premium lifts out of the page
+  if(i===2 && t>=T.popIn && t<T.popOutEnd){
+    const A=popAmt(t);
+    return {x:0,y:-4*liftPremium(t),z:POP.z*A,rx:POP.rx*A,ry:POP.ry*A,rz:0,s:1+POP.s*A,o:1,sh:Math.max(A,.25),hover:true};
+  }
+  // marketplace: cards fly back in from depth
+  if(i>=3 && t>=enterT(i) && t<enterT(i)+.85){
+    const p=ease(t,enterT(i),enterT(i)+.85,E.out);
+    return {x:0,y:-70*(1-p),z:320*(1-p),rx:22*(1-p),ry:0,rz:0,s:1,o:ease(t,enterT(i),enterT(i)+.22,E.smooth),sh:1-p};
+  }
+  return null;
+}
+function cloneActive(i,t){ return !!clonePose(i,t); }
+
+/* ---------- app state at time t ---------- */
+function appAt(t){
+  const filter = (t>=T.clickProd && t<T.clickAll) ? 'Productivity' : 'All products';
+  setFilter(filter);
+
+  cards.forEach((el,i)=>{
+    let o=1, y=0;
+    if(t<landT(i)) o=0;                                         // still flying in
+    if(i>=3 && t>=T.clickAll && t<enterT(i)+.85) o=0;           // flying back in
+    if(i<3 && t>=T.clickProd && t<T.clickProd+.6){              // grid refresh after filtering
+      const pr=ease(t,T.clickProd+.02+i*.06,T.clickProd+.5+i*.06,E.out); o*=lerp(.6,1,pr); y+=(1-pr)*8;
+    }
+    if(i!==2){                                                  // spotlight by contrast
+      const dim=ease(t,T.hoverPremium,T.hoverPremium+.5,E.smooth)*(1-ease(t,8.7,9.3,E.smooth));
+      o*=1-0.45*dim;
+    }
+    let lift=0;
+    if(el===premium) lift=liftPremium(t);
+    if(el===backup) lift=ease(t,T.hoverBackup-.06,T.hoverBackup+.3,E.outSoft)*(1-ease(t,T.cursorOut-.2,T.cursorOut+.25,E.smooth));
+    y-=lift*4;
+    if(el===premium && t>=T.popIn && t<T.popOutEnd) o=0;        // the lifted copy is on screen
+    el.classList.toggle('is-hover',lift>0.5);
+    el.style.boxShadow= lift>0 ? `0 ${2+16*lift}px ${6+34*lift}px -${6*lift}px rgba(37,43,38,${0.05+0.11*lift})` : '';
+    el.style.opacity=o.toFixed(4);
+    el.style.transform=`translate3d(0,${y.toFixed(3)}px,0)`;
+  });
+
+  const hovProd = t>=4.32 && t<T.clickProd+0.25, hovAll = t>=9.48 && t<T.clickAll+0.25;
+  chipProd.classList.toggle('is-hover',hovProd); chipAll.classList.toggle('is-hover',hovAll);
+  chipProd.classList.toggle('is-press', t>=T.clickProd-0.1 && t<T.clickProd+0.02);
+  chipAll.classList.toggle('is-press', t>=T.clickAll-0.1 && t<T.clickAll+0.02);
+
+  const added = t>=T.clickAdd;
+  const btnHover = t>=7.1 && t<8.9, btnPress = t>=T.clickAdd-0.1 && t<T.clickAdd+0.03;
+  premiumBtn.classList.toggle('is-hover', btnHover); premiumBtn.classList.toggle('is-press', btnPress);
+  premiumBtn.textContent = added ? premiumBtn.dataset.labelAfter : premiumBtn.dataset.labelBefore;
+
+  // quote bar (real component)
+  if(t<T.cartIn){ cart.style.display='none'; }
+  else{
+    cart.style.display='';
+    const p=ease(t,T.cartIn,T.cartIn+0.55,E.out);
+    let dy=(1-p)*26;
+    if(t>=T.clickAll){ const f=ease(t,T.clickAll+0.02,T.clickAll+0.5,E.inOut); dy+=(G.cartProd.y-G.cartAll.y)*(1-f); }
+    cart.style.opacity=p.toFixed(4);
+    cart.style.transform=`translate3d(0,${dy.toFixed(2)}px,0)`;
+  }
+
+  // clones
+  clones.forEach(c=>{
+    const P=clonePose(c.i,t);
+    if(!P){ c.host.style.display='none'; return; }
+    c.host.style.display='block';
+    const r=c.rect;
+    c.host.style.opacity=P.o.toFixed(4);
+    c.host.style.transform=`translate3d(${(r.x+P.x).toFixed(3)}px,${(r.y+P.y).toFixed(3)}px,${P.z.toFixed(3)}px) rotateZ(${P.rz}deg) rotateY(${P.ry}deg) rotateX(${P.rx}deg) scale(${P.s})`;
+    const sh=P.sh;
+    c.card.style.boxShadow = sh>0 ? `0 ${10+40*sh}px ${30+70*sh}px -${10}px rgba(0,0,0,${(0.10+0.32*sh).toFixed(3)})` : '';
+    c.card.classList.toggle('is-hover',!!P.hover);
+    if(c.i===2){
+      c.btn.classList.toggle('is-hover',btnHover); c.btn.classList.toggle('is-press',btnPress);
+      c.btn.textContent = added ? c.btn.dataset.labelAfter : 'Add to quote +';
+    }
+  });
+
+  // page dims behind the lifted card
+  document.getElementById('dim').style.opacity=(0.5*ease(t,T.popIn,T.popIn+.55,E.smooth)*(1-ease(t,T.popOut-.05,T.popOutEnd-.1,E.smooth))).toFixed(4);
+  // glass sheen on the hero frame
+  const sw=prog(t,T.sweep,T.sweep+1.2);
+  const sh=document.getElementById('sheen');
+  sh.style.opacity = (sw>0&&sw<1) ? (Math.sin(Math.PI*sw)*0.9).toFixed(3) : 0;
+  sh.style.transform=`translate3d(${lerp(-70,200,E.inOut(sw))}%,0,0)`;
+}
+
+/* ---------- callouts anchored to the lifted card ---------- */
+let CALLOUTS=null;
+function buildCallouts(){
+  const c=clones[2].root;
+  const priceEl=c.querySelector('.product-price'), detail=c.querySelector('.product-detail');
+  const price=priceEl.querySelector('strong').textContent.trim()+' '+priceEl.querySelector('span').textContent.trim();
+  const spans=detail.querySelectorAll('span');
+  const cost=spans[0].textContent.replace(/^Cost:\s*/,'').trim(), margin=spans[1].textContent.trim();
+  CALLOUTS=[
+    {el:priceEl, k:'Price', v:price, t0:7.02},
+    {el:detail,  k:'Cost & margin', v:`${cost} cost · ${margin}`, t0:7.18},
+  ];
+  const host=document.getElementById('callouts');
+  CALLOUTS.forEach(o=>{
+    const d=document.createElement('div'); d.className='callout';
+    d.innerHTML=`<div class="line"></div><div class="dot"></div><div class="label"><span class="k"><span>${o.k}</span></span><span class="v"><span>${o.v}</span></span></div>`;
+    host.appendChild(d); o.node=d;
+  });
+}
+function calloutsAt(t){
+  if(!CALLOUTS) buildCallouts();
+  const sr=document.getElementById('stage').getBoundingClientRect();
+  const active=t>=6.9 && t<T.popOutEnd && clones[2].host.style.display!=='none';
+  const card=active?clones[2].card.getBoundingClientRect():null;
+  CALLOUTS.forEach(o=>{
+    const n=o.node;
+    if(!active){ n.style.display='none'; return; }
+    n.style.display='block';
+    const r=o.el.getBoundingClientRect();
+    const x0=r.right-sr.left+16, y0=r.top-sr.top+r.height/2, lx=card.right-sr.left+78;
+    const out=ease(t,T.popOut-.12,T.popOut+.25,E.in);
+    const pd=ease(t,o.t0,o.t0+.3,E.outSoft)*(1-out), pl=ease(t,o.t0+.08,o.t0+.62,E.out)*(1-out);
+    const pk=ease(t,o.t0+.25,o.t0+.85,E.out), pv=ease(t,o.t0+.33,o.t0+.95,E.out);
+    const dot=n.querySelector('.dot'), line=n.querySelector('.line'), lab=n.querySelector('.label');
+    dot.style.left=x0+'px'; dot.style.top=y0+'px'; dot.style.transform=`scale(${pd.toFixed(3)})`;
+    line.style.left=x0+'px'; line.style.top=(y0-0.75)+'px'; line.style.width=Math.max(0,lx-14-x0)+'px'; line.style.transform=`scaleX(${pl.toFixed(4)})`;
+    lab.style.left=lx+'px'; lab.style.top=(y0-22)+'px';
+    lab.querySelector('.k span').style.transform=`translate3d(0,${((1-pk)*110 - out*110).toFixed(2)}%,0)`;
+    lab.querySelector('.v span').style.transform=`translate3d(0,${((1-pv)*110 - out*110).toFixed(2)}%,0)`;
+  });
 }
 
 /* ---------- editorial copy ---------- */
@@ -360,100 +574,33 @@ function copyAt(t){
     const visible = t>=B.in-0.01 && t<=B.out+0.6;
     el.style.visibility=visible?'visible':'hidden';
     if(!visible) continue;
-    const lines=[...el.querySelectorAll('.ln > span')];
-    lines.forEach((s,i)=>{
+    el.querySelectorAll('.ln > span').forEach((s,i)=>{
       const pin=ease(t,B.in+0.10+i*0.085,B.in+0.10+i*0.085+0.85,E.out);
       const pout=ease(t,B.out+i*0.05,B.out+i*0.05+0.42,E.in);
       s.style.transform=`translate3d(0,${(1-pin)*112 - pout*112}%,0)`;
     });
-    const bar=el.querySelector('.bar'); if(bar){
-      bar.style.transform=`scaleX(${ease(t,B.in,B.in+0.6,E.out)*(1-ease(t,B.out,B.out+0.35,E.in))})`;
-    }
+    const bar=el.querySelector('.bar'); if(bar) bar.style.transform=`scaleX(${ease(t,B.in,B.in+0.6,E.out)*(1-ease(t,B.out,B.out+0.35,E.in))})`;
     const lbl=el.querySelector('.lbl span'); if(lbl){
       const pin=ease(t,B.in+0.12,B.in+0.8,E.out), pout=ease(t,B.out,B.out+0.35,E.in);
       lbl.style.transform=`translate3d(0,${(1-pin)*110-pout*110}%,0)`;
     }
     const sub=el.querySelector('.sub span'); if(sub){
-      const p=ease(t,B.in+0.55,B.in+1.35,E.out);
-      sub.style.transform=`translate3d(0,${(1-p)*105}%,0)`;
+      const p=ease(t,B.in+0.55,B.in+1.35,E.out); sub.style.transform=`translate3d(0,${(1-p)*105}%,0)`;
     }
     const logo=el.querySelector('.logo'); if(logo){
-      const p=ease(t,B.in-0.05,B.in+0.9,E.out);
-      logo.style.opacity=p; logo.style.transform=`translate3d(0,${(1-p)*18}px,0)`;
+      const p=ease(t,B.in-0.05,B.in+0.9,E.out); logo.style.opacity=p; logo.style.transform=`translate3d(0,${(1-p)*18}px,0)`;
+    }
+    el.querySelectorAll('.stat').forEach((s,i)=>{
+      const st=B.in+0.62+i*0.12, p=ease(t,st,st+0.8,E.out), pout=ease(t,B.out+0.05,B.out+0.45,E.in);
+      const inner=s.firstElementChild; inner.style.transform=`translate3d(0,${((1-p)*110 - pout*110).toFixed(2)}%,0)`;
+      const b=s.querySelector('b'), n=+b.dataset.n; b.textContent=Math.round(n*ease(t,st,st+0.9,E.outSoft));
+    });
+    const v=el.querySelector('.vendors span'); if(v){
+      const p=ease(t,B.in+1.0,B.in+1.8,E.out), pout=ease(t,B.out+0.1,B.out+0.5,E.in);
+      v.style.transform=`translate3d(0,${((1-p)*110 - pout*110).toFixed(2)}%,0)`;
     }
   }
   document.getElementById('hairline').style.width=(ease(t,12.7,14.1,E.out)*120)+'px';
-  // scrim fades in with the first headline; it is always there afterwards
-  document.getElementById('scrim').style.opacity=0.25+0.75*ease(t,0.2,1.2,E.smooth);
-}
-
-/* ---------- app state at time t ---------- */
-function appAt(t){
-  // filter state (real chip behaviour: clicking a chip filters the grid)
-  const filter = (t>=T.clickProd && t<T.clickAll) ? 'Productivity' : 'All products';
-  setFilter(filter);
-
-  // card entrances / exits
-  cards.forEach((el,i)=>{
-    let o=1, y=0, s=1;
-    // initial page-load stagger (scene 1 -> 2)
-    const pin=ease(t,T.cardsIn+i*0.075,T.cardsIn+i*0.075+0.8,E.out);
-    o*=pin; y+=(1-pin)*34;
-    // filter-out ghost (non-productivity cards fade before they're removed)
-    if(el.dataset.category!=='Productivity'){
-      const pf=ease(t,T.clickProd-0.001,T.clickProd+0.30,E.smooth);
-      if(t>=T.clickProd-0.30 && t<T.clickProd){ /* still visible */ }
-      // re-entrance after "All products"
-      if(t>=T.clickAll){
-        const order=[3,4,5].indexOf(i); const st=T.clickAll+0.06+Math.max(order,0)*0.085;
-        const pr=ease(t,st,st+0.75,E.out); o*=pr; y+=(1-pr)*30;
-      }
-    } else if(t>=T.clickProd && t<T.clickProd+0.6){
-      const pr=ease(t,T.clickProd+0.02+i*0.06,T.clickProd+0.5+i*0.06,E.out);
-      o*=lerp(.55,1,pr); y+=(1-pr)*8;
-    } else if(t>=T.clickAll){
-      const pr=ease(t,T.clickAll+i*0.05,T.clickAll+0.55+i*0.05,E.out); y+=(1-pr)*6; o*=lerp(.75,1,pr);
-    }
-    // spotlight by contrast on the selected product (scene 3)
-    if(el!==premium){
-      const dim=ease(t,T.hoverPremium,T.hoverPremium+0.55,E.smooth)*(1-ease(t,8.75,9.35,E.smooth));
-      o*=1-0.48*dim;
-    }
-    // hover elevation
-    let lift=0;
-    if(el===premium) lift=ease(t,T.hoverPremium-0.08,T.hoverPremium+0.28,E.outSoft)*(1-ease(t,9.2,9.6,E.smooth));
-    if(el===mcs) lift=ease(t,T.hoverMcs-0.06,T.hoverMcs+0.3,E.outSoft)*(1-ease(t,T.cursorOut-0.2,T.cursorOut+0.25,E.smooth));
-    y-=lift*4;
-    el.classList.toggle('is-hover',lift>0.5);
-    el.style.boxShadow= lift>0 ? `0 ${2+16*lift}px ${6+34*lift}px -${6*lift}px rgba(37,43,38,${0.05+0.11*lift}), 0 1px 2px rgba(37,43,38,${0.04*lift})` : '';
-    el.style.opacity=o.toFixed(4);
-    el.style.transform=`translate3d(0,${y.toFixed(3)}px,0) scale(${s})`;
-  });
-
-  // chip hover/press
-  const hovProd = t>=4.32 && t<T.clickProd+0.25, hovAll = t>=9.48 && t<T.clickAll+0.25;
-  chipProd.classList.toggle('is-hover',hovProd); chipAll.classList.toggle('is-hover',hovAll);
-  chipProd.classList.toggle('is-press', t>=T.clickProd-0.1 && t<T.clickProd+0.02);
-  chipAll.classList.toggle('is-press', t>=T.clickAll-0.1 && t<T.clickAll+0.02);
-
-  // Add to quote button: hover, press, real label change
-  premiumBtn.classList.toggle('is-hover', t>=7.05 && t<8.9);
-  premiumBtn.classList.toggle('is-press', t>=T.clickAdd-0.1 && t<T.clickAdd+0.03);
-  premiumBtn.textContent = t>=T.clickAdd ? premiumBtn.dataset.labelAfter : premiumBtn.dataset.labelBefore;
-
-  // cart bar (real component) — slides in after the add, then follows the layout when the grid grows
-  if(t<T.cartIn){ cart.style.display='none'; }
-  else{
-    cart.style.display='';
-    const p=ease(t,T.cartIn,T.cartIn+0.55,E.out);
-    let dy=(1-p)*26;
-    if(t>=T.clickAll){ // FLIP from filtered position to its new position
-      const f=ease(t,T.clickAll+0.05,T.clickAll+0.75,E.inOut);
-      dy+= (G.cartProd.y-G.cartAll.y)*(1-f);
-    }
-    cart.style.opacity=p.toFixed(4);
-    cart.style.transform=`translate3d(0,${dy.toFixed(2)}px,0)`;
-  }
 }
 
 /* ---------- camera + background ---------- */
@@ -461,33 +608,46 @@ function stageAt(t){
   const c=camAt(t);
   const cam=document.getElementById('cam');
   cam.style.transform=`translate3d(${c.ax}px,${c.ay}px,0) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.rz}deg) scale(${c.s}) translate3d(${-c.fx}px,${-c.fy}px,0)`;
-  const op=ease(t,0.0,0.7,E.smooth);
-  cam.style.opacity=op;
-  // background parallax: moves a fraction of the camera's pan
+  // the browser window assembles behind the gathering cards
+  const w=ease(t,0.75,1.9,E.smooth);
+  document.getElementById('win').style.opacity=w.toFixed(4);
+  document.getElementById('win').style.transform=`translate3d(0,0,${(-140*(1-ease(t,0.75,2.3,E.out))).toFixed(2)}px)`;
+  document.getElementById('shadow').style.opacity=w.toFixed(4);
   const bx=-(c.fx-800)*0.035, by=-(c.fy-523)*0.03;
-  document.getElementById('bg').style.transform=`translate3d(${bx}px,${by}px,0) scale(${1+ (c.s-0.6)*0.02})`;
+  document.getElementById('bg').style.transform=`translate3d(${bx}px,${by}px,0) scale(${1+(c.s-0.6)*0.02})`;
+  document.getElementById('glow').style.transform=`translate3d(${bx*1.6}px,${by*1.2}px,0)`;
+  document.getElementById('glow').style.opacity=(0.5+0.5*ease(t,12.3,13.8,E.smooth)).toFixed(3);
   document.getElementById('copy').style.transform=`translate3d(${-(c.fx-800)*0.012}px,0,0)`;
 
-  // cursor in browser space, kept a readable on-screen size while zoomed
   const k=cursorAt(t), cur=document.getElementById('cursor');
   const press = [T.clickProd,T.clickAdd,T.clickAll].some(ct=>t>=ct-0.1&&t<ct+0.03) ? 0.86 : 1;
   const sz=Math.pow(c.s,-0.55)*1.05;
   cur.style.opacity=k.o.toFixed(3);
-  cur.style.transform=`translate3d(${k.x-4}px,${k.y-3}px,30px) scale(${(sz*press).toFixed(4)})`;
+  cur.style.transform=`translate3d(${k.x-4}px,${k.y-3}px,${k.z.toFixed(2)}px) scale(${(sz*press).toFixed(4)})`;
   const hand = (t>=4.25&&t<5.0) || (t>=6.95&&t<8.9) || (t>=9.42&&t<10.1);
   document.getElementById('cur-hand').style.opacity=hand?1:0;
   document.getElementById('cur-arrow').style.opacity=hand?0:1;
+  document.getElementById('scrim').style.opacity=(0.35+0.65*ease(t,0.2,1.2,E.smooth)).toFixed(3);
 }
 
 window.seek=function(t){
   t=clamp(t,0,DURATION);
-  appAt(t); stageAt(t); copyAt(t);
-  frame.contentDocument.body.offsetHeight; // flush layout
+  appAt(t); stageAt(t); copyAt(t); calloutsAt(t);
+  frame.contentDocument.body.offsetHeight;
   return true;
 };
-window.ready=bootApp().then(()=>{ window.seek(0); window.__forbidden=forbiddenVisibleText(); return true; });
+// screen-space positions of a few tracked points: used by the renderer to decide how many motion-blur samples a frame needs
+window.trackPoints=function(t){
+  window.seek(t);
+  const pts=[]; const push=r=>pts.push([r.left,r.top],[r.right,r.bottom]);
+  push(document.getElementById('win').getBoundingClientRect());
+  clones.forEach(c=>{ if(c.host.style.display!=='none') push(c.host.getBoundingClientRect()); else pts.push([0,0],[0,0]); });
+  push(document.getElementById('cursor').getBoundingClientRect());
+  document.querySelectorAll('.ln > span').forEach(s=>push(s.getBoundingClientRect()));
+  return pts;
+};
+window.ready=bootApp().then(()=>{ window.seek(0); return true; });
 
-// preview mode: open index.html?play to watch in real time
 if(location.search.includes('play')){
   window.ready.then(()=>{ const t0=performance.now(); const loop=()=>{ const t=((performance.now()-t0)/1000)%DURATION; window.seek(t); requestAnimationFrame(loop); }; loop(); });
 }

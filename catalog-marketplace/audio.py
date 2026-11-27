@@ -57,8 +57,16 @@ def whoosh(d=0.9,up=True):
     shape=np.sin(np.pi*np.clip(x/d,0,1))**2
     return y*shape
 for ct in (4.62,7.55,9.72): add(click(),ct-0.01,0.55,0.15)
-for wt,d,g,up in ((0.05,1.6,0.30,True),(2.95,0.8,0.22,True),(6.0,0.7,0.18,False),(8.95,0.8,0.22,True),(12.15,1.4,0.28,False)):
+# whooshes: opening drift, cards gather, push-in, filter lift-away, card lifts out, settles, cards fly back, pull-back
+for wt,d,g,up in ((0.0,1.2,0.16,True),(0.95,1.25,0.30,True),(2.95,0.8,0.20,True),(4.6,0.55,0.12,True),(6.35,0.75,0.24,True),
+                  (7.98,0.7,0.18,False),(9.85,0.9,0.24,True),(12.15,1.4,0.28,False)):
     add(whoosh(d,up),wt,g)
+# soft ticks as each card lands in the grid (opening) and as returning cards land
+def tick():
+    n=int(.03*SR); x=np.arange(n)/SR
+    return np.sin(2*np.pi*1800*x)*env(n,.0005,.005)
+for i in range(6): add(tick(),2.02+i*0.075,0.22,(i-2.5)/4)
+for i in range(3): add(tick(),9.88+i*0.09+0.85,0.18,0.2)
 # soft riser into the hero + gentle tail chime
 n=int(1.2*SR); x=np.arange(n)/SR; chime=sum(np.sin(2*np.pi*f*x)*np.exp(-x*a) for f,a in ((1046.5,3.2),(1568,4.0),(2093,5.5)))/3
 add(chime*np.minimum(1,x/0.004),12.62,0.10,-0.1)

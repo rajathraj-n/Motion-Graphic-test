@@ -10,7 +10,7 @@ const srv=http.createServer((q,r)=>{const p=path.join(ROOT,decodeURIComponent(q.
   fs.readFile(p,(e,b)=>{if(e){r.writeHead(404);r.end();return}r.writeHead(200,{'content-type':types[path.extname(p)]||'application/octet-stream'});r.end(b)})});
 
 (async()=>{
-  await new Promise(r=>srv.listen(0,r)); const url=`http://localhost:${srv.address().port}/composition/index.html`;
+  await new Promise(r=>srv.listen(0,r)); const url=`http://localhost:${srv.address().port}/composition/v1.html`;
   fs.rmSync(OUT,{recursive:true,force:true}); fs.mkdirSync(OUT,{recursive:true});
   const browser=await chromium.launch({args:['--force-color-profile=srgb','--disable-lcd-text','--font-render-hinting=none']});
 
